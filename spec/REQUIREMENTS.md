@@ -1,211 +1,429 @@
-# Requirements: Agent-Authored Interactive Reports
+# Requirements: Trellis — Agent-Authored Interactive Reports
 
-> Working name TBD. Referred to below as **"the system."**
+> Updated to reflect decisions from the Claude Design handoff and Modular Bento prototype. **Production graph visualization uses React Flow**, even where the prototype used hand-authored SVG.
 
 ## 1. Overview
 
-The system is a personal toolkit that lets coding agents (Claude Code, Codex, etc.) produce **beautiful, interactive HTML reports** efficiently and consistently. Rather than asking an agent to design and implement a bespoke document each time, the system provides design tokens, a React component library, structured data schemas, an Astro build pipeline, and a set of **Claude Code skills** that teach the agent how to use it all. The agent fills in content; the system enforces consistency and provides the interactive scaffolding.
+**Trellis** is a personal toolkit for producing beautiful, interactive HTML reports with coding agents such as Claude Code and Codex. Instead of asking an agent to design and implement a bespoke report each time, Trellis gives the agent a reusable engine: design tokens, React components, structured schemas, validation, an Astro build pipeline, Storybook examples, and agent-facing skills that teach the authoring workflow.
 
-The reports are not linear documents to read top-to-bottom. They are **navigable knowledge artifacts**: hierarchical, cross-linked, with a built-in map and a knowledge graph, optimized for learning a topic or understanding a codebase.
+A Trellis report is a navigable knowledge artifact, not a static document. It combines a guided reading path, persistent structure navigation, inline entity references, a glossary/reference surface, hierarchical synthesis, and a knowledge graph. The reader can start with orientation, read linearly, jump through the map-like sidebar, inspect entities, explore synthesis nodes, or move through the graph.
 
-## 2. Goals
+## 2. Prototype Decisions Now Adopted
 
-- **Reduce agent effort per report.** Producing a polished report should be a matter of filling structured slots, not designing from scratch.
-- **Enforce a coherent visual identity** across reports without re-specifying preferences each time.
-- **Support non-linear consumption.** The reader can read straight through, jump around, drill down, or zoom out — and always knows where they are.
-- **Encode an explanatory pedagogy.** Material is presented basics-first, with synthesis layered above detail. The component library itself models good teaching moves.
-- **Make knowledge structure first-class.** Concepts, components, and their relationships are explicit data, not just prose, so they can power navigation, hover tooltips, a glossary, and a graph view.
-- **Give the agent an escape hatch.** When standard components don't fit, the agent can write custom React for a section without breaking the rest of the system.
-- **Make the agent's job teachable.** Authoring know-how lives in Claude Code skills that activate when relevant, not in one ever-growing manual.
+The Claude Design handoff and Modular Bento prototype resolve several earlier open questions. These are now V1 decisions:
 
-## 3. Non-Goals
+- **Project name:** use **Trellis** as the working product name.
+- **Visual direction:** use the Trellis warm editorial technical-atlas direction: linen background, white paper surfaces, deep ink, sage/coral/butter accents, serif reading typography, sans UI chrome, and mono metadata/code.
+- **App structure:** use a single reader shell with a sticky `TopBar`, persistent left `NavPanel`, optional guided-only `RightRail`, and a main view area.
+- **Reader modes:** use five top-level modes: **Orientation**, **Guided**, **Reference**, **Synthesis**, and **Graph**.
+- **No standalone Map mode:** the persistent `NavPanel` is the map. It exposes sections, subsections, synthesis navigation, and quick jumps.
+- **No standalone Deep Dive mode:** deep-dive behavior is represented by focused entity/reference states and graph spotlight states.
+- **Content model:** prefer structured block data and `InlineProse` strings over free-form MDX for core authored content.
+- **Graph behavior:** preserve the prototype’s Atlas / Spotlight / Regions graph concepts, but implement production graph visualization with **React Flow**.
+- **V1 delivery:** implement in staged milestones. The first useful slice is the reading shell and guided report path; reference, graph, synthesis, and orientation polish follow.
 
-- Not a multi-user product. No accounts, no collaboration, no auth.
-- Not a CMS. The system is not for hand-authored content at scale; the agent is the primary author.
-- Not a general design system to share publicly. Single-opinion, single-user.
-- Not a runtime knowledge graph database. The KG is per-report and embedded; no cross-report entity reuse in V1.
-- Not concerned with SEO, accessibility certifications, or formal compliance, beyond the level of good practice that comes for free with a decent component library.
+## 3. Goals
 
-## 4. Users & Use Cases
+- **Reduce agent effort per report.** Producing a polished report should be a matter of filling structured slots and using shared components, not designing from scratch.
+- **Enforce a coherent visual identity.** Reports should feel like Trellis artifacts without restating design preferences every run.
+- **Support non-linear consumption.** The reader can read straight through, jump around, inspect entities, explore synthesis, and return to context easily.
+- **Encode explanatory pedagogy.** Components and skills encourage basics-first explanation, concrete examples, synthesis above detail, and progressive disclosure.
+- **Make knowledge structure first-class.** Entities, relationships, sources, sections, anchors, and synthesis nodes are explicit data that power navigation and validation.
+- **Give the agent an escape hatch.** Custom React/TSX is allowed when standard components cannot express the needed visualization or interaction.
+- **Make authoring teachable.** Authoring guidance lives in Claude Code skills and schema descriptions, not in an ever-growing manual.
 
-**Primary user:** me, reading.
-**Primary author:** a coding agent (Claude Code, typically) acting on my prompts.
+## 4. Non-Goals
 
-### Use cases
+- Not a multi-user product. No accounts, collaboration, permissions, or auth.
+- Not a CMS. Trellis is optimized for agent-authored, per-report artifacts, not large hand-authored content operations.
+- Not a public general-purpose design system. It is an opinionated single-user system.
+- Not a runtime knowledge graph database. The graph is per-report and embedded; no cross-report entity registry in V1.
+- Not SEO-focused.
+- Not accessibility-certified, though production components should follow good accessibility practice and use accessible primitives where appropriate.
+- Not mobile-first in V1. Desktop/tablet reading is the primary target; mobile support can be improved later.
 
-1. **Learning a technical topic** — e.g. "explain how Postgres' MVCC works" or "teach me the WebGPU pipeline." The agent researches and produces a report that introduces fundamentals before drilling into details, with cross-linked concepts and visualizations.
-2. **Understanding a codebase area** — e.g. "produce a report on how the auth subsystem works in this repo." The agent reads code, identifies components and relationships, and produces a report whose KG includes real code entities (modules, functions, types) with file references.
-3. **Comparison and decision support** — e.g. "compare Tanstack Router vs React Router for this app." Structured tradeoffs, deep dives, and a clear recommendation.
-4. **Feature walkthroughs** — e.g. "explain the checkout flow end-to-end." Front-end, back-end, data model, error cases.
-5. **Synthesizing research notes** — taking a folder of articles or transcripts and producing a structured, navigable synthesis.
+## 5. Users and Use Cases
 
-## 5. Functional Requirements
+**Primary reader:** the repo owner.
 
-### 5.1 Two Parallel Deliverables
+**Primary author:** a coding agent, usually Claude Code, acting on user prompts.
 
-The project produces two coordinated deliverables:
+### 5.1 Learning a technical topic
 
-- **The engine** — design tokens, component library, schemas, build pipeline, Storybook. The mechanical surface the agent uses.
-- **The agent instruction layer** — a set of Claude Code skills that encode the *judgment* of building a good report (composition, teaching tone, sequencing, synthesis, entity modeling, visualization choice).
+Example: “Teach me how Postgres MVCC works.” The agent researches the topic, authors a tutorial-style report, introduces foundations before mechanisms, and links concepts through entities and graph relationships.
 
-Both are first-class. The engine without the skills means inconsistent reports despite good components; the skills without the engine means the agent rebuilds layouts from scratch each time.
+### 5.2 Understanding a codebase area
 
-### 5.2 Authoring (agent-facing)
+Example: “Produce a report on how the auth subsystem works in this repo.” The agent traces code paths, identifies modules/functions/types/components, writes source references, and creates a codebase-oriented knowledge graph.
 
-- The agent produces a report by:
-  1. Writing structured content files (TypeScript modules) that conform to **Zod schemas**.
-  2. Optionally writing MDX for prose-heavy sections.
-  3. Writing entity and relationship data for the knowledge graph.
-  4. Optionally writing custom React/TSX for sections requiring unique treatment.
-  5. Wiring everything into a report-level manifest defining structure, the orientation view, and the synthesis hierarchy (where applicable).
-- Schema validation runs as part of the build; the agent gets actionable errors when content is malformed.
-- A **Storybook** instance documents every component with realistic examples; agents can read it to learn what's available.
-- The agent's **working notes** (research scratch, draft synthesis, intermediate outlines) are not part of the shipped report. Only structured content under the report directory is built.
-- The agent invokes validation and build commands directly via the shell during authoring; the user is not in the build loop.
+### 5.3 Feature walkthroughs
 
-### 5.3 Design System
+Example: “Explain the checkout flow end-to-end.” The report covers user-facing behavior, frontend flow, backend/API flow, data model, state transitions, error cases, and extension points.
 
-- A defined set of **design tokens**: typography scale, color palette (light + dark), spacing scale, radius, elevation/shadows, motion timings.
-- A **component library** in React (rendered by Astro), organized in tiers:
-  - **Layout & navigation** — page shell, sidebar, mini-map, content area, breadcrumb.
-  - **Generic content blocks** — headings, prose, callouts, definitions, figures, comparison tables, code blocks, diagrams.
-  - **Teaching components** — `ConceptIntro`, `MentalModelCard`, `KeyTakeaways`, `Example`, `Analogy`, `CommonMisconception`, `StepByStep`, `CheckUnderstanding`, `BeforeYouContinue`. These encode pedagogical patterns directly.
-  - **Codebase-specific components** — `CodeReference`, `FileReference`, `SymbolCard`, `ComponentHierarchy`, `DataFlowView`, `CallPathView`, `DependencyList`. Used when the report touches real code.
-  - **Visualization wrappers** — consistent affordances around charts, diagrams, and the KG graph view.
-- Visual identity remains **opinionated and singular**. No themes/skins for the reader, but multiple **candidate design visions** are explored during prototyping before a default is chosen (see §10).
+### 5.4 Comparison and decision support
 
-### 5.4 Document Structure & Navigation
+Example: “Compare TanStack Router and React Router for this app.” The report defines evaluation criteria, includes a comparison matrix, explains tradeoffs, and makes a recommendation.
 
-Every report has:
+### 5.5 Synthesizing research notes
 
-- An **orientation view** as the entry point: hero summary, "what you'll learn," recommended path, topic-map preview, and a quick-jump to major regions. Designed so a reader who opens the report knows in 30 seconds what it covers and where to start.
-- A **content map** — hierarchical structure of sections, always one click away in the sidebar; the reader's current location is always indicated.
-- A **mini-map** widget showing position within the broader structure.
-- **Four reading modes**, each with discoverable UI affordances:
-  - **Guided** — linear path through the recommended reading order, with prev/next.
-  - **Map** — outline/tree view of the entire report; click any node to jump.
-  - **Reference** — glossary-style index of entities (concepts, code symbols, etc.) for fast lookup.
-  - **Deep dive** — focused view on a single entity or section, surfacing its definition, references, neighbors in the KG, and related sections.
+Example: “Turn this folder of articles/transcripts into a navigable synthesis.” The agent turns source material into a structured report with provenance, entities, and synthesis nodes.
 
-Reading modes mostly fall out of the same underlying data; building the KG and section tree gets all four.
+## 6. Functional Requirements
 
-### 5.5 Hierarchical Synthesis
+### 6.1 Two Parallel Deliverables
 
-Reports optionally include a **synthesis hierarchy** as a separate structure from the section tree:
+Trellis ships two coordinated deliverables:
 
-- **Leaf nodes** correspond to concrete units of understanding (a function, a sub-concept, a paper).
-- **Intermediate nodes** synthesize their children — not by concatenating summaries, but by explaining what the children have in common, how they differ, what higher-level pattern emerges, and how the pieces work together.
-- **Higher nodes** build further levels of synthesis to whatever depth fits the content.
+1. **The engine** — design tokens, component library, schemas, validation, build pipeline, Storybook, graph/runtime helpers.
+2. **The agent instruction layer** — Claude Code skills that encode how to compose reports, use components, research topics, teach clearly, model entities, build synthesis, and choose visualizations.
 
-A good synthesis node:
+Both are first-class. The engine without the skills leaves too much judgment to each agent run; the skills without the engine make the agent rebuild structure and visual design from scratch.
 
-- Identifies the common structure across its children, not just a union of their content
-- States what the reader should take away at this level *before* drilling down
-- Points back to the specific child sections, entities, or sources it draws from
-- Notes what's contested, uncertain, or remaining open
+### 6.2 Authoring Model
 
-The synthesis tree is its own navigable view; nodes reference sections and entities but don't duplicate their content.
+The agent produces a report by:
 
-### 5.6 Knowledge Graph
+1. Creating or updating a report manifest.
+2. Writing structured TypeScript content files that conform to Zod schemas.
+3. Writing block bodies as structured data, usually `InlineProse` strings.
+4. Defining entities, relationships, synthesis nodes, and source references.
+5. Optionally writing report-local custom React/TSX components when standard components are insufficient.
+6. Running validation and build commands directly.
 
-Each report optionally defines:
+Agent scratch notes, draft outlines, and research notes are not part of the built output unless intentionally promoted into structured report content.
 
-- **Entities** — concepts, code components (modules, functions, types, React components), features, libraries, papers, etc. Each has: id, display name, type, short definition, longer description, references (URLs, file paths, section anchors), aliases.
-- **Relationships** — typed, directed edges between entities, with optional labels (e.g. "depends on," "is a kind of," "calls," "contradicts") and an optional **strength** (`weak | medium | strong`) that the graph view and filters use.
-- **Source references** — first-class, enumerable list of sources (code locations, URLs, documents, passages) with their own IDs that entities, sections, and relationships can point to. The report carries an inventory of its evidentiary basis.
+### 6.3 InlineProse and Prose Authoring
 
-These power:
+Core V1 report content uses structured blocks plus `InlineProse`, not arbitrary Markdown.
 
-- A **glossary page** — entities listed alphabetically and by type, each linking to where it's defined and discussed.
-- **Hover-card definitions** — inline entity mentions reveal short defs on hover and link to full treatments. Explicit `<EntityRef>` only in V1; no autolinking.
-- A **graph view** — interactive visualization with filters by entity type and relationship type, focus-on-node mode, gradual neighborhood expansion. The graph is navigation, not decoration.
-- **Related concepts** affordances on entity and section pages.
+`InlineProse` supports a small, validated inline dialect:
 
-Build-time validation must fail loudly on dangling references (entity mentioned but not defined, relationship pointing at missing entity, section reference pointing at missing section, source reference unused or undefined).
+- `<e id="entity-id">visible text</e>` for entity references.
+- `<em>...</em>` for emphasis.
+- `<code>...</code>` for inline code.
 
-### 5.7 Report Templates
+The build validates that every `<e id="...">` reference resolves to an entity in the report knowledge graph. Full MDX remains an escape hatch for unusual prose-heavy or custom sections, but it is not the default authoring surface for V1.
 
-Reports start from a **template** that supplies a default structure and skill emphasis. V1 templates:
+### 6.4 Design System
 
-- **Topic Tutorial** — orientation, foundations, core concepts, worked examples, advanced concepts, glossary, optional review prompts.
-- **Codebase Architecture** — orientation, architecture map, main flows, key modules/components, data model, dependency graph, code references, synthesis tree, glossary.
-- **Feature Walkthrough** — feature summary, user-facing behavior, frontend flow, backend/API flow, data model, state transitions, error cases, extension points.
-- **Comparison** — decision context, evaluation criteria, comparison matrix, deep dives, tradeoffs, recommendation.
+Trellis uses the visual direction established by the design handoff:
 
-Templates are starting points, not constraints — the agent adjusts based on the topic. A "custom" template skips the prefilled structure.
+- Warm linen page background.
+- White and near-white paper surfaces.
+- Deep green-black ink text.
+- Sage accent for mechanisms, active system state, and informational structure.
+- Coral accent for concepts, entities, next actions, and primary highlights.
+- Butter accent for caution, maintenance, and aside material.
+- Source Serif 4 or bundled equivalent for reading prose.
+- Manrope or bundled equivalent for UI chrome.
+- JetBrains Mono or bundled equivalent for metadata, IDs, entities, and code.
 
-### 5.8 Customization
+Production output must not depend on Google Fonts, CDN React, CDN Babel, or other network resources. Prototype CDN imports are non-production.
 
-- The agent may write **custom React components** in `reports/<name>/custom/` when standard components don't fit.
-- Every custom component must appear in a **customization manifest** in the report config with: name, purpose, why standard components were insufficient, and where it's used.
-- The composition skill must direct the agent to prefer standard components and treat custom as a last resort.
-- Lint enforcement of allowed imports is V1.x; in V1 the manifest is the governance.
+### 6.5 Reader Shell and Modes
 
-### 5.9 Build & Output
+Every report renders inside the same reader shell:
 
-- **Dev:** `pnpm dev <report>` starts a local server with HMR for fast iteration during authoring.
-- **Validate:** `pnpm validate <report>` runs schema and reference validation; clear, agent-readable errors.
-- **Build:** `pnpm build <report>` produces a self-contained `reports/<name>/dist/` folder that opens locally and can be moved or shared. No CDN fonts, no analytics, no network dependencies by default.
-- The output is a folder of static files in V1; single-file HTML export is V1.x.
+- **TopBar** — global header with logo, report id, mode switcher, and a reserved search/command affordance.
+- **NavPanel** — persistent left map/navigation panel. Shows section tree, subsection anchors, synthesis navigation, and quick jumps.
+- **Main view area** — active mode content.
+- **RightRail** — guided-mode-only context column with related entities, sources, and graph affordances.
 
-## 6. Non-Functional Requirements
+The five modes are:
 
-- **Consistency:** two reports built by different agent runs feel like they came from the same product.
-- **Authoring efficiency:** the agent spends the bulk of its tokens on *content*, not boilerplate. The system carries the structural and visual load.
-- **Discoverability for the agent:** Storybook stories, schema `.describe()` strings, and the skill modules together let the agent learn what's available without trial and error.
-- **Reader performance:** reports open quickly and feel snappy.
-- **Resilience to agent mistakes:** schemas and reference checks fail at build time with clear errors.
-- **Reader has minimal persistent state:** `localStorage` remembers last visited section and expand/collapse state per report. No highlights, notes, or seen/unseen tracking in V1.
+1. **Orientation** — entry view that explains what the report covers, what the reader will learn, recommended path, key entities, and jump targets.
+2. **Guided** — linear reading view over sections and anchored blocks, with prev/next navigation and current-subsection tracking.
+3. **Reference** — entity and source lookup surface: glossary, focused entity detail, related sections, related entities, and source inventory.
+4. **Synthesis** — hierarchical synthesis view where parent nodes explain common structure, contrast, takeaways, open questions, and references to children/sections/entities/sources.
+5. **Graph** — interactive knowledge graph view implemented with React Flow.
 
-## 7. Constraints
+The `NavPanel` replaces a standalone Map mode. Deep-dive experiences happen as focused states inside Reference, Synthesis, and Graph rather than as a separate mode.
 
-- **Personal project.** Time investment justified only when it noticeably improves my reading and an agent's authoring.
-- **Single user.** Implementation choices favor simplicity over generality.
-- **Astro + React** is the committed stack. React for components, Astro for static-first builds with islands of interactivity.
-- **Static-friendly.** Anything dynamic (graph view, hover cards, mode toggling) must work in a fully static build without a backend.
+### 6.6 Guided Reading
 
-## 8. V1 Scope
+Guided mode renders one section at a time. Each section includes:
 
-### In scope for V1
+- Section title, summary, kind, optional read time, and related entities.
+- Optional section-header graph context.
+- Structured content blocks.
+- Anchored blocks that correspond to subsection rows in `NavPanel`.
+- Previous/next section pagination.
+- Optional guided-only `RightRail` with neighborhood graph, related entities, and sources.
 
-- Engine: design tokens, component library (layout + generic content + teaching + codebase tiers + visualizations), schemas, Storybook, validation, static build pipeline.
-- Reader experience: orientation view, content map, mini-map, four reading modes, hover cards, graph view, glossary, synthesis tree, minimal reader state (last visited + expand/collapse).
-- Knowledge graph: entities, relationships (with strength), source references (first-class), glossary page, graph view, build-time reference validation.
-- Customization: `CustomBlock` + report-local `custom/` directory + manifest requirement.
-- Agent instruction layer: Claude Code skills (see §5.1 and design doc).
-- Report templates: Topic Tutorial, Codebase Architecture, Feature Walkthrough, Comparison.
-- Two example "golden path" reports — one topic, one codebase — that future reports imitate.
+The current visible anchor should be reported to the shell so `NavPanel` can highlight the current subsection while the reader scrolls.
 
-### Out of scope for V1 (good ideas to preserve)
+### 6.7 Component Library
 
-- Full-text search across a report
-- Highlights, notes, annotations, bookmarks
-- Seen/unseen section markers, resume-reading dot
-- Autolinking entity names in prose
-- Cross-report entity reuse / shared entity registry
-- Multi-report library/dashboard, hosted/shared reports
-- PDF export, single-file HTML export
-- Embedded exercises, quizzes, spaced-repetition cards
-- AI chat over a generated report, source-grounded Q&A
-- Lint enforcement of custom-component imports
-- Visual regression testing
-- Engine version migration tooling
-- Mobile-first layout
+The component library is organized around production components proven by the prototype.
 
-## 9. Risks
+Core shell and chrome:
 
-- **Over-engineering.** Mitigation: start with the smallest useful component set, ship one excellent example report early, add components only when repeated use justifies them.
-- **Agent over-customization.** Mitigation: customization manifest, explicit composition skill, prefer-standard rule in the skills.
-- **Graph hairball.** Mitigation: filtering, focus mode, treat graph as navigation aid not complete truth model.
-- **Reports getting too dense.** Mitigation: progressive disclosure, guided path, separate summary from detail.
-- **Skill/schema drift.** Mitigation: schemas remain source of truth; skills cite schemas rather than restate them.
+- `AppShell`
+- `TopBar`
+- `NavPanel`
+- `RightRail`
+- `SectionPagination`
+- `ModeSwitcher`
 
-## 10. Open Questions
+Core primitives:
 
-Mostly visual and deferred items. Functional and technical design is committed.
+- `Card`
+- `BentoCard`
+- `Eyebrow`
+- `Dot`
+- `InlineTag`
+- `Button`
+- `SegmentedControl`
+- `Tabs`
 
-1. **Visual design direction.** Six candidate visions to prototype against the same sample content before committing: *Premium Interactive Technical Atlas*, *Calm Technical Book*, *Interactive Textbook*, *Code Intelligence Cockpit*, *Research Notebook / Lab Manual*, *Premium Documentation Site*. Decided after prototyping, not before.
-2. **Mini-map exact UX.** Tree sidebar with collapsed/expanded state, thumb-style scrubber, or compact graph? Prototype.
-3. **Synthesis hierarchy UI.** Nested-card list, indented outline with smooth expand, or "zoom" interaction where a clicked node becomes the focal level? Prototype.
-4. **Light theme and dark theme tuning.** Both supported; specific palettes settle during design-vision prototyping.
-5. **Project name.** TBD.
+Inline/reference:
+
+- `InlineProse`
+- `EntityRef`
+- `EntityHoverCard`
+
+Core guided blocks:
+
+- `ConceptIntro`
+- `MentalModel`
+- `Callout`
+- `StepByStep`
+- `KeyTakeaways`
+- `CommonMisconception`
+- `BeforeYouContinue`
+- `BlockHeading`
+- `ProseBlock`
+
+Views:
+
+- `OrientationView`
+- `GuidedView`
+- `ReferenceView`
+- `SynthesisView`
+- `GraphView`
+
+Graph components:
+
+- `GraphView`
+- `GraphCanvas`
+- `GraphToolbar`
+- `GraphModeSwitcher`
+- `EntityNode`
+- `RelationshipEdge`
+- `MiniGraph`
+- `SectionHeaderGraph`
+
+Additional generic, codebase, and visualization components can be added when needed by the golden reports and templates.
+
+### 6.8 Knowledge Graph
+
+Each report may define a knowledge graph:
+
+- **Entities** — concepts, patterns, features, files, modules, functions, types, components, libraries, papers, people, APIs, workflows, and other relevant things.
+- **Relationships** — typed directed edges with optional label, description, source references, and strength (`weak | medium | strong`).
+- **Sources** — enumerable evidence inventory for URLs, code locations, documents, and passages.
+
+The graph powers:
+
+- Inline entity references and hover cards.
+- Reference/glossary view.
+- Entity detail panels.
+- Related-entity affordances in sections and the right rail.
+- React Flow graph visualization.
+
+### 6.9 Graph View
+
+The full Graph mode is implemented with **React Flow** in production. The prototype’s graph modes define the desired behavior, not the final rendering technology.
+
+Graph mode supports:
+
+- **Atlas** — whole-report graph overview with filters and search.
+- **Spotlight** — focused neighborhood around a selected entity, with hop/ring expansion.
+- **Regions** — graph grouped by section or section kind.
+
+Required graph affordances:
+
+- Search entities by name/alias.
+- Filter by entity type.
+- Filter or threshold by relationship strength.
+- Highlight neighbors of hovered/focused nodes.
+- Open an entity in Reference mode.
+- Open an entity’s primary section in Guided mode.
+- Preserve graph mode in reader state; focus is transient.
+
+All interactive graph canvases should use React Flow wrappers styled through Trellis tokens. Static icons and small decorative glyphs may be SVG, but graph visualization itself is React Flow.
+
+### 6.10 Hierarchical Synthesis
+
+Reports may include a synthesis hierarchy independent of the section tree.
+
+A synthesis node should include:
+
+- Title and summary.
+- Optional detail.
+- Common structure across children.
+- Contrast between children.
+- Key takeaways.
+- Open questions or uncertainty.
+- References to sections, anchors, entities, and sources.
+- Child synthesis nodes.
+
+Synthesis is not a duplicate outline. It is a higher-level structure that explains how parts fit together.
+
+### 6.11 Report Templates
+
+V1 templates:
+
+- **Topic Tutorial** — orientation, foundations, concepts, mechanisms, examples, synthesis, graph, reference.
+- **Codebase Architecture** — orientation, architecture overview, main flows, key modules/components, data model, dependencies, source references, synthesis, graph.
+- **Feature Walkthrough** — feature summary, user behavior, frontend flow, backend/API flow, data model, state transitions, edge cases, extension points.
+- **Comparison** — decision context, criteria, comparison matrix, deep dives, tradeoffs, recommendation, source references.
+- **Custom** — empty starter for unusual reports.
+
+Templates are starting points, not rigid constraints.
+
+### 6.12 Customization
+
+The agent may write custom React/TSX under `reports/<name>/custom/` when standard components cannot express the needed visualization or interaction.
+
+Every custom component must be declared in the manifest with:
+
+- Name.
+- Purpose.
+- Justification for why standard components were insufficient.
+- Where it is used.
+
+In V1, the manifest is the governance mechanism. Lint enforcement of import restrictions is V1.x.
+
+### 6.13 Validation
+
+Validation must fail on:
+
+- Duplicate IDs within a namespace.
+- Section references pointing at missing sections.
+- Anchor references pointing at missing block anchors.
+- Entity references pointing at missing entities.
+- Relationship endpoints pointing at missing entities.
+- Source references pointing at missing sources.
+- InlineProse `<e id="...">` references pointing at missing entities.
+- Custom blocks pointing at missing custom component files or missing manifest entries.
+- Orientation recommended-path entries pointing at missing sections.
+
+Validation may warn, rather than fail, for unused sources during early implementation.
+
+Errors should be written for agents: precise, actionable, and including file path, section ID, block index, and missing ID where possible.
+
+### 6.14 Build and Output
+
+Commands:
+
+- `pnpm dev <report>` — starts Astro dev server for the selected report.
+- `pnpm validate <report>` — runs schemas and reference checks.
+- `pnpm build <report>` — emits `reports/<name>/dist/`.
+- `pnpm scaffold-report <name> --template <template>` — copies a template and initializes the manifest/content stubs.
+
+Built output must be static and self-contained:
+
+- No backend.
+- No analytics.
+- No CDN scripts.
+- No CDN fonts.
+- No network dependencies by default.
+
+Single-file HTML export, PDF export, and full-text report search are out of scope for V1.
+
+## 7. Non-Functional Requirements
+
+- **Consistency:** reports should feel like one product.
+- **Authoring efficiency:** agents should spend most tokens on content, not boilerplate.
+- **Agent discoverability:** Storybook, schema descriptions, examples, and skills should make correct usage obvious.
+- **Reader performance:** reports should open quickly and feel responsive.
+- **Static friendliness:** interactivity must work without a backend.
+- **Resilience to agent mistakes:** validation catches malformed content and dangling references before build output is trusted.
+- **Accessibility baseline:** production components should restore focus rings, use accessible primitives where possible, support keyboard interactions for main controls, and respect reduced-motion preferences.
+- **Minimal persistent state:** use localStorage per report for mode, current section, graph mode, and expand/collapse state as needed.
+
+## 8. Constraints
+
+- Personal project; simplicity beats generality.
+- Single user; no auth or multi-tenant complexity.
+- Astro + React + TypeScript is the committed stack.
+- Tailwind is a constrained facade over Trellis tokens, not an open styling palette.
+- React Flow is the committed graph visualization implementation.
+- Reports must remain static and locally openable.
+- The prototype is not production code; it is a behavior, visual, and fixture reference.
+
+## 9. V1 Scope
+
+### 9.1 First Implementation Slice
+
+The first useful slice should ship:
+
+- Repo scaffold with pnpm workspaces.
+- Engine package scaffold.
+- Astro app scaffold.
+- Trellis design tokens and Tailwind config.
+- `cn()` and `cva()` helpers.
+- Storybook scaffold.
+- Core primitives: `Card`, `BentoCard`, `Eyebrow`, `Dot`, `InlineTag`, `Button`, `SegmentedControl`.
+- `InlineProse` and `EntityRef` without full graph integration.
+- Core guided blocks: `ConceptIntro`, `MentalModel`, `Callout`, `StepByStep`, `KeyTakeaways`, `CommonMisconception`, `BeforeYouContinue`, `BlockHeading`, `ProseBlock`.
+- `AppShell`, `TopBar`, `NavPanel` sections tab, `GuidedView`, `SectionPagination`.
+- Basic report schema and validation.
+- A Postgres MVCC topic tutorial fixture adapted from the prototype.
+
+### 9.2 V1 Complete
+
+V1 complete adds:
+
+- Orientation view with Trellis bento composition.
+- Reference view and entity detail panel.
+- Entity hover cards using accessible primitives.
+- React Flow graph view with Atlas, Spotlight, and Regions modes.
+- MiniGraph/SectionHeaderGraph implemented as React Flow-backed graph components.
+- Synthesis view and synthesis navigation.
+- RightRail with related entities, sources, and graph affordances.
+- Full validation for anchors, entity refs, relationships, sources, orientation path, and custom components.
+- Topic Tutorial, Codebase Architecture, Feature Walkthrough, Comparison, and Custom templates.
+- Claude Code skills.
+- Two golden reports: one topic tutorial and one codebase report.
+
+### 9.3 Out of Scope for V1
+
+Good ideas to preserve but not build in V1:
+
+- Full-text search across a report.
+- Command palette behavior beyond reserved affordance.
+- Highlights, notes, annotations, bookmarks.
+- Seen/unseen markers and progress tracking.
+- Autolinking entity names in prose.
+- Cross-report entity reuse or shared entity registry.
+- Multi-report dashboard/library.
+- Hosted/shared reports.
+- PDF export.
+- Single-file HTML export.
+- Embedded exercises, quizzes, spaced-repetition cards.
+- AI chat over a generated report.
+- Source-grounded Q&A over a report.
+- Visual regression testing.
+- Engine version migration tooling.
+- Mobile-first layout.
+- Formal accessibility certification.
+
+## 10. Risks
+
+- **Over-engineering.** Mitigation: implement the guided report path first, prove value with one golden report, and add components only when repeated use justifies them.
+- **Agent over-customization.** Mitigation: standard components, custom manifest, skills that explicitly prefer standard components.
+- **Graph hairball.** Mitigation: React Flow modes, filters, spotlight view, region grouping, and treating the graph as navigation rather than complete truth model.
+- **Reports getting too dense.** Mitigation: guided path, right rail, synthesis, progressive disclosure, and clear separation of summary/detail.
+- **Skill/schema drift.** Mitigation: schemas remain source of truth; skills cite schemas and Storybook rather than restating everything.
+- **Prototype leakage.** Mitigation: production code ports visual output and behavior, not CDN scripts, inline style objects, or prototype globals.
+
+## 11. Remaining Open Questions
+
+The major product and visual decisions are no longer open. Remaining questions are implementation details:
+
+1. **URL state strategy.** Whether the app shell uses hash routes, Astro routes, or a hybrid to support deep links into modes, sections, anchors, entities, graph focus, and synthesis nodes.
+2. **React Flow layout strategy.** Exact layout algorithms for Atlas, Spotlight, and Regions modes, and how much custom layout code lives in `packages/engine/kg/`.
+3. **Codebase component depth.** Which codebase-specific components are required for the first codebase golden report versus later.
+4. **Engine versioning policy.** Defer until breaking changes matter.
