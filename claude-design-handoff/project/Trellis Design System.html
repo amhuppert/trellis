@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trellis · Design System Specification</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+
+<style>
+  /* ---------- Token manifest — light theme ---------- */
+  :root {
+    color-scheme: light;
+
+    /* Surface roles */
+    --color-bg:        #F4F2EC;
+    --color-surface:   #FFFFFF;
+    --color-surface-2: #F9F7F1;
+    --color-surface-3: #ECE8DC;
+
+    /* Ink (text) */
+    --color-ink:    #16201A;
+    --color-ink-2:  rgba(22,32,26,0.66);
+    --color-ink-3:  rgba(22,32,26,0.44);
+    --color-ink-4:  rgba(22,32,26,0.28);
+
+    /* Borders */
+    --color-border-soft: rgba(20,30,25,0.05);
+    --color-border:      rgba(20,30,25,0.10);
+    --color-border-hi:   rgba(20,30,25,0.18);
+
+    /* Accent · sage (information / mechanism / system) */
+    --color-accent-sage:      oklch(48% 0.07 155);
+    --color-accent-sage-ink:  oklch(35% 0.07 155);
+    --color-accent-sage-soft: oklch(92% 0.04 155);
+    --color-accent-sage-bg:   oklch(96% 0.025 155);
+
+    /* Accent · coral (concept / entity / next-action) */
+    --color-accent-coral:      oklch(62% 0.16 30);
+    --color-accent-coral-ink:  oklch(45% 0.16 30);
+    --color-accent-coral-soft: oklch(94% 0.05 30);
+    --color-accent-coral-bg:   oklch(97% 0.025 30);
+
+    /* Accent · butter (caution / maintenance / aside) */
+    --color-accent-butter:     oklch(86% 0.10 90);
+    --color-accent-butter-ink: oklch(48% 0.10 80);
+    --color-accent-butter-bg:  oklch(96% 0.03 90);
+
+    /* Type families */
+    --font-sans:  "Manrope", -apple-system, system-ui, sans-serif;
+    --font-serif: "Source Serif 4", "Newsreader", Georgia, serif;
+    --font-mono:  "JetBrains Mono", ui-monospace, monospace;
+
+    /* Radii */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-xl: 12px;
+    --radius-2xl: 14px;
+    --radius-3xl: 18px;
+    --radius-pill: 999px;
+
+    /* Elevation */
+    --shadow-sm:    0 1px 2px rgba(20,30,25,0.04), 0 6px 24px rgba(20,30,25,0.04);
+    --shadow-pop:   0 4px 12px rgba(20,30,25,0.06), 0 20px 60px rgba(20,30,25,0.08);
+
+    /* Motion */
+    --motion-fast: 120ms;
+    --motion-med:  220ms;
+    --motion-slow: 360ms;
+    --ease-out:    cubic-bezier(.2,.7,.3,1);
+  }
+
+  /* ---------- Token manifest — dark theme (proposed) ---------- */
+  .dark, [data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-bg:        oklch(18% 0.008 155);
+    --color-surface:   oklch(22% 0.008 155);
+    --color-surface-2: oklch(24% 0.008 155);
+    --color-surface-3: oklch(28% 0.010 155);
+
+    --color-ink:   oklch(94% 0.012 85);
+    --color-ink-2: oklch(94% 0.012 85 / 0.72);
+    --color-ink-3: oklch(94% 0.012 85 / 0.48);
+    --color-ink-4: oklch(94% 0.012 85 / 0.28);
+
+    --color-border-soft: oklch(94% 0.012 85 / 0.06);
+    --color-border:      oklch(94% 0.012 85 / 0.12);
+    --color-border-hi:   oklch(94% 0.012 85 / 0.22);
+
+    --color-accent-sage:      oklch(72% 0.10 155);
+    --color-accent-sage-ink:  oklch(82% 0.08 155);
+    --color-accent-sage-soft: oklch(34% 0.05 155);
+    --color-accent-sage-bg:   oklch(26% 0.03 155);
+
+    --color-accent-coral:      oklch(74% 0.14 30);
+    --color-accent-coral-ink:  oklch(82% 0.12 30);
+    --color-accent-coral-soft: oklch(34% 0.06 30);
+    --color-accent-coral-bg:   oklch(26% 0.04 30);
+
+    --color-accent-butter:     oklch(80% 0.10 85);
+    --color-accent-butter-ink: oklch(86% 0.10 85);
+    --color-accent-butter-bg:  oklch(28% 0.04 85);
+  }
+
+  /* ---------- Reset + page chrome ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: inherit; }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 5px; border: 2px solid var(--color-bg); }
+
+  /* ---------- Layout ---------- */
+  .page {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  .nav {
+    position: sticky; top: 0; align-self: start;
+    height: 100vh; overflow: auto;
+    border-right: 1px solid var(--color-border-soft);
+    background: var(--color-surface);
+    padding: 28px 22px;
+  }
+  .nav-mark {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 28px;
+  }
+  .nav-mark .glyph {
+    width: 32px; height: 32px; border-radius: var(--radius-lg);
+    background: var(--color-ink);
+    display: grid; place-items: center;
+  }
+  .nav-mark .glyph::after {
+    content: ""; width: 12px; height: 12px; border-radius: 999px;
+    background: var(--color-accent-coral);
+  }
+  .nav-mark .wordmark { font-weight: 700; font-size: 14px; letter-spacing: -0.005em; }
+  .nav-mark .sub { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); margin-top: 1px; }
+
+  .nav-group { margin-top: 18px; }
+  .nav-eyebrow {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--color-ink-3); margin-bottom: 8px;
+  }
+  .nav a {
+    display: block; text-decoration: none;
+    padding: 6px 10px; border-radius: var(--radius-md);
+    font-size: 13px; color: var(--color-ink-2);
+    transition: background var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out);
+  }
+  .nav a:hover { background: var(--color-surface-2); color: var(--color-ink); }
+  .nav a .n { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); margin-right: 8px; }
+
+  .main { padding: 56px 64px 120px; max-width: 1080px; min-width: 0; }
+
+  /* ---------- Type roles ---------- */
+  .t-display { font-family: var(--font-serif); font-weight: 500; font-size: 56px; line-height: 1.02; letter-spacing: -0.025em; }
+  .t-h1      { font-family: var(--font-serif); font-weight: 500; font-size: 40px; line-height: 1.08; letter-spacing: -0.02em; }
+  .t-h2      { font-family: var(--font-serif); font-weight: 500; font-size: 28px; line-height: 1.2;  letter-spacing: -0.015em; }
+  .t-h3      { font-family: var(--font-serif); font-weight: 500; font-size: 22px; line-height: 1.25; letter-spacing: -0.005em; }
+  .t-lead    { font-family: var(--font-serif); font-weight: 400; font-size: 21px; line-height: 1.42; color: var(--color-ink-2); text-wrap: pretty; }
+  .t-body    { font-family: var(--font-serif); font-weight: 400; font-size: 18px; line-height: 1.62; text-wrap: pretty; }
+  .t-body-sans { font-family: var(--font-sans); font-weight: 400; font-size: 14px; line-height: 1.55; color: var(--color-ink-2); }
+  .t-label   { font-family: var(--font-sans); font-weight: 600; font-size: 13px; line-height: 1.3; }
+  .t-caption { font-family: var(--font-sans); font-weight: 400; font-size: 12px; line-height: 1.4; color: var(--color-ink-3); }
+  .t-eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-ink-3); }
+  .t-mono    { font-family: var(--font-mono); font-size: 12px; }
+  .t-code    { font-family: var(--font-mono); font-size: 13px; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    margin-bottom: 56px;
+  }
+  .hero .crumbs { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; }
+  .hero .crumbs .pill {
+    background: var(--color-surface); border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-pill); padding: 5px 12px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-3);
+  }
+  .hero h1 {
+    font-family: var(--font-serif); font-weight: 500; font-size: 64px;
+    line-height: 1.02; letter-spacing: -0.025em; margin: 0 0 16px;
+    max-width: 760px;
+  }
+  .hero .deck {
+    font-family: var(--font-serif); font-size: 22px; line-height: 1.45;
+    color: var(--color-ink-2); max-width: 700px; text-wrap: pretty; margin: 0;
+  }
+  .hero-meta {
+    margin-top: 32px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    padding-top: 20px; border-top: 1px solid var(--color-border-soft);
+  }
+  .hero-meta .cell .k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink-3); }
+  .hero-meta .cell .v { font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: var(--color-ink); margin-top: 4px; }
+
+  /* ---------- Section scaffolding ---------- */
+  section.spec { margin-bottom: 80px; scroll-margin-top: 24px; }
+  section.spec > .head {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 22px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--color-border-soft);
+  }
+  section.spec > .head .n {
+    font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+    color: var(--color-accent-coral); letter-spacing: 0.05em;
+  }
+  section.spec > .head .ti { font-family: var(--font-serif); font-weight: 500; font-size: 32px; line-height: 1.08; letter-spacing: -0.02em; }
+  section.spec > .intro { font-family: var(--font-serif); font-size: 18px; line-height: 1.55; color: var(--color-ink-2); max-width: 720px; text-wrap: pretty; margin: 0 0 28px; }
+  .sub-h { font-family: var(--font-sans); font-weight: 700; font-size: 13px; letter-spacing: 0.02em; color: var(--color-ink); margin: 28px 0 12px; }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-3xl);
+    padding: 20px 22px;
+  }
+  .card.tight { padding: 14px 16px; border-radius: var(--radius-xl); }
+
+  /* ---------- Grids ---------- */
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+
+  /* ---------- Color swatch ---------- */
+  .sw {
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: var(--color-surface);
+  }
+  .sw .chip {
+    height: 86px; width: 100%; position: relative;
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+  .sw .chip.chk {
+    background-image:
+      linear-gradient(45deg, rgba(0,0,0,.06) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(0,0,0,.06) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(0,0,0,.06) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(0,0,0,.06) 75%);
+    background-size: 12px 12px;
+    background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+  }
+  .sw .meta { padding: 10px 12px 12px; }
+  .sw .role { font-family: var(--font-sans); font-size: 13px; font-weight: 700; }
+  .sw .tw { font-family: var(--font-mono); font-size: 10.5px; color: var(--color-ink-2); margin-top: 3px; }
+  .sw .v  { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); margin-top: 2px; }
+
+  /* ---------- Table ---------- */
+  .tbl {
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    overflow: hidden;
+    width: 100%;
+    font-family: var(--font-sans);
+  }
+  .tbl table { border-collapse: collapse; width: 100%; }
+  .tbl th, .tbl td {
+    text-align: left; padding: 11px 14px;
+    border-top: 1px solid var(--color-border-soft);
+    font-size: 13px; vertical-align: top;
+  }
+  .tbl thead th {
+    border-top: none;
+    background: var(--color-surface-2);
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink-3);
+  }
+  .tbl td.mono, .tbl th.mono { font-family: var(--font-mono); font-size: 12px; }
+  .tbl td.tw { font-family: var(--font-mono); font-size: 12px; color: var(--color-accent-sage-ink); }
+  .tbl td .desc { color: var(--color-ink-2); }
+
+  /* ---------- Code block ---------- */
+  .code {
+    background: var(--color-ink);
+    color: #E9E4D7;
+    border-radius: var(--radius-xl);
+    padding: 18px 20px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .code .kw { color: oklch(80% 0.10 30); }
+  .code .st { color: oklch(80% 0.10 90); }
+  .code .cm { color: rgba(233,228,215,0.45); font-style: italic; }
+  .code .pr { color: oklch(80% 0.10 155); }
+
+  /* ---------- Specimen cards ---------- */
+  .type-row {
+    background: var(--color-surface); border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-xl); padding: 18px 22px;
+    display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: center;
+  }
+  .type-row + .type-row { margin-top: 10px; }
+  .type-row .key .role { font-family: var(--font-sans); font-size: 13px; font-weight: 700; color: var(--color-ink); }
+  .type-row .key .tw { font-family: var(--font-mono); font-size: 11px; color: var(--color-accent-sage-ink); margin-top: 3px; }
+  .type-row .key .v  { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); margin-top: 3px; }
+
+  /* ---------- Spacing ruler ---------- */
+  .spacer-row { display: grid; grid-template-columns: 80px 1fr; gap: 16px; align-items: center; padding: 8px 0; border-top: 1px dashed var(--color-border-soft); }
+  .spacer-row:first-child { border-top: none; }
+  .spacer-row .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-2); }
+  .spacer-row .bar { height: 14px; background: var(--color-accent-sage-bg); border: 1px solid var(--color-accent-sage-soft); border-radius: 3px; }
+
+  /* ---------- Radius demo ---------- */
+  .radius-tile {
+    display: flex; flex-direction: column; align-items: center;
+    background: var(--color-surface); border: 1px solid var(--color-border-soft);
+    padding: 18px 0 14px;
+  }
+  .radius-tile .shape {
+    width: 56px; height: 56px; background: var(--color-ink);
+  }
+  .radius-tile .lbl { font-family: var(--font-mono); font-size: 11px; color: var(--color-ink); margin-top: 12px; font-weight: 600; }
+  .radius-tile .v   { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); margin-top: 2px; }
+
+  /* ---------- Shadow tiles ---------- */
+  .shadow-tile {
+    background: var(--color-surface); border-radius: var(--radius-xl);
+    padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  .shadow-card { width: 110px; height: 80px; border-radius: var(--radius-xl); background: var(--color-surface); }
+
+  /* ---------- Block previews ---------- */
+  .preview { display: grid; grid-template-columns: 1fr; gap: 18px; }
+
+  .block-concept {
+    background: var(--color-surface); border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-2xl); padding: 22px 24px;
+    border-left: 4px solid var(--color-accent-coral);
+  }
+  .block-mental {
+    background: var(--color-accent-sage-bg); border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-2xl); padding: 22px 24px;
+  }
+  .block-callout {
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-2xl); padding: 16px 20px;
+    display: grid; grid-template-columns: 28px 1fr; gap: 14px;
+  }
+  .block-callout.info  { background: var(--color-accent-sage-bg); }
+  .block-callout.warn  { background: var(--color-accent-coral-bg); }
+  .block-callout.aside { background: var(--color-accent-butter-bg); }
+  .block-callout .glyph {
+    width: 24px; height: 24px; border-radius: 999px; color: var(--color-bg);
+    display: grid; place-items: center; font-family: var(--font-serif); font-weight: 700; font-size: 14px;
+  }
+  .block-callout.info  .glyph { background: var(--color-accent-sage); }
+  .block-callout.warn  .glyph { background: var(--color-accent-coral); }
+  .block-callout.aside .glyph { background: var(--color-accent-butter-ink); }
+  .block-takeaways { background: var(--color-ink); color: var(--color-bg); border-radius: var(--radius-2xl); padding: 22px 24px; }
+  .block-takeaways ul { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 10px; }
+  .block-takeaways li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; font-family: var(--font-serif); font-size: 17px; line-height: 1.45; }
+  .block-takeaways li::before { content: "—"; color: var(--color-accent-coral); font-family: var(--font-mono); font-weight: 700; }
+  .block-misc { background: var(--color-accent-coral-bg); border: 1px solid var(--color-border-soft); border-radius: var(--radius-2xl); padding: 18px 22px; }
+  .block-misc .claim { font-family: var(--font-serif); font-size: 19px; font-style: italic; line-height: 1.3; margin-top: 10px; }
+  .block-misc .truth { margin-top: 12px; padding: 12px 14px; background: var(--color-surface); border-radius: var(--radius-lg); border-left: 3px solid var(--color-accent-coral); font-family: var(--font-serif); font-size: 16px; }
+
+  /* ---------- EntityRef ---------- */
+  .e-ref {
+    font-family: var(--font-mono); font-size: 0.92em;
+    color: var(--color-accent-coral-ink);
+    background: var(--color-accent-coral-bg);
+    padding: 1px 6px; border-radius: var(--radius-xs);
+    border-bottom: 1px dotted var(--color-accent-coral);
+    font-weight: 500; white-space: nowrap;
+  }
+
+  /* ---------- Eyebrow utility used in previews ---------- */
+  .ey { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-ink-3); }
+  .ey.coral { color: var(--color-accent-coral); }
+  .ey.sage  { color: var(--color-accent-sage-ink); }
+  .ey.butter{ color: var(--color-accent-butter-ink); }
+
+  /* ---------- Buttons ---------- */
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: var(--radius-pill); cursor: pointer; font-family: var(--font-sans); font-size: 13px; font-weight: 700; border: 1px solid transparent; transition: transform var(--motion-fast) var(--ease-out), background var(--motion-fast) var(--ease-out); }
+  .btn-primary   { background: var(--color-ink); color: var(--color-bg); }
+  .btn-secondary { background: var(--color-surface); color: var(--color-ink); border-color: var(--color-border-soft); }
+  .btn-ghost     { background: transparent; color: var(--color-ink-2); }
+
+  /* ---------- Footer ---------- */
+  footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--color-border-soft); font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-3); }
+
+  /* ---------- Misc helpers ---------- */
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .stack { display: grid; gap: 10px; }
+  .muted { color: var(--color-ink-3); }
+  .inline-tag { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: var(--radius-sm); background: var(--color-surface-3); font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-2); }
+
+  /* responsive */
+  @media (max-width: 900px) {
+    .page { grid-template-columns: 1fr; }
+    .nav { position: static; height: auto; }
+    .main { padding: 28px 22px 80px; }
+    .hero h1 { font-size: 44px; }
+    .hero .deck { font-size: 18px; }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid-6 { grid-template-columns: repeat(3, 1fr); }
+    .hero-meta { grid-template-columns: repeat(2, 1fr); }
+    .type-row { grid-template-columns: 1fr; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ============= NAV ============= -->
+<nav class="nav" aria-label="Spec sections">
+  <div class="nav-mark">
+    <div class="glyph" aria-hidden="true"></div>
+    <div>
+      <div class="wordmark">Trellis</div>
+      <div class="sub">design&nbsp;system · v0.1</div>
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Overview</div>
+    <a href="#about"><span class="n">00</span>About this spec</a>
+    <a href="#principles"><span class="n">01</span>Principles</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Foundations</div>
+    <a href="#color"><span class="n">02</span>Color</a>
+    <a href="#type"><span class="n">03</span>Typography</a>
+    <a href="#space"><span class="n">04</span>Spacing</a>
+    <a href="#radius"><span class="n">05</span>Radii</a>
+    <a href="#elevation"><span class="n">06</span>Elevation</a>
+    <a href="#motion"><span class="n">07</span>Motion</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">The facade</div>
+    <a href="#tailwind"><span class="n">08</span>Tailwind config</a>
+    <a href="#utilities"><span class="n">09</span>Semantic utilities</a>
+    <a href="#cn"><span class="n">10</span>cn() &amp; cva</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Components</div>
+    <a href="#card"><span class="n">11</span>Card &amp; surface</a>
+    <a href="#blocks"><span class="n">12</span>Content blocks</a>
+    <a href="#entity"><span class="n">13</span>EntityRef</a>
+    <a href="#buttons"><span class="n">14</span>Buttons &amp; tabs</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Theming</div>
+    <a href="#dark"><span class="n">15</span>Dark mode</a>
+    <a href="#governance"><span class="n">16</span>Governance</a>
+  </div>
+</nav>
+
+<!-- ============= MAIN ============= -->
+<main class="main">
+
+  <!-- HERO -->
+  <header class="hero" id="about">
+    <div class="crumbs">
+      <span class="pill">Engine · packages/engine/design-tokens</span>
+      <span class="pill">v0.1 · derived from Modular Bento</span>
+    </div>
+    <h1>The design system for agent-authored, navigable reports.</h1>
+    <p class="deck">A constrained vocabulary of color, type, space, and shape — declared once as CSS variables, surfaced to authors as a thin layer of semantic Tailwind utilities, and assembled into the component library that every Trellis report inherits.</p>
+
+    <div class="hero-meta">
+      <div class="cell"><div class="k">Source prototype</div><div class="v">Modular Bento</div></div>
+      <div class="cell"><div class="k">Stack</div><div class="v">Astro · React · Tailwind</div></div>
+      <div class="cell"><div class="k">Token format</div><div class="v">CSS variables</div></div>
+      <div class="cell"><div class="k">Themes</div><div class="v">Light (default) · Dark</div></div>
+    </div>
+  </header>
+
+  <!-- ===================================================== -->
+  <!-- 01 PRINCIPLES                                          -->
+  <!-- ===================================================== -->
+  <section class="spec" id="principles">
+    <div class="head"><span class="n">01</span><span class="ti">Principles</span></div>
+    <p class="intro">Five commitments the rest of the spec follows from. Each is a constraint on what the system says yes to and — more importantly — what it refuses to expose.</p>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="ey coral">One palette, named</div>
+        <div style="font-family: var(--font-serif); font-size: 18px; line-height: 1.45; margin-top: 10px;">Authors never reach for <code class="t-mono">bg-blue-500</code>. The class doesn't exist. Color is requested by role — <code class="t-mono">bg-surface</code>, <code class="t-mono">text-accent</code> — and the role decides the hex.</div>
+      </div>
+      <div class="card">
+        <div class="ey coral">Type is roles, not sizes</div>
+        <div style="font-family: var(--font-serif); font-size: 18px; line-height: 1.45; margin-top: 10px;">Size, weight, leading, and tracking ship together as a single <code class="t-mono">text-h2</code> or <code class="t-mono">text-body</code>. Vertical rhythm is the system's job, not the author's.</div>
+      </div>
+      <div class="card">
+        <div class="ey coral">Components carry the load</div>
+        <div style="font-family: var(--font-serif); font-size: 18px; line-height: 1.45; margin-top: 10px;">90% of authoring is composing <code class="t-mono">&lt;Callout variant=&quot;info&quot;&gt;</code>, not assembling utility strings. Tailwind is the floor; the library is the room.</div>
+      </div>
+      <div class="card">
+        <div class="ey coral">Dark mode is free</div>
+        <div style="font-family: var(--font-serif); font-size: 18px; line-height: 1.45; margin-top: 10px;">Semantic tokens flip values under <code class="t-mono">.dark</code>. Components don't need <code class="t-mono">dark:</code> variants for color — they get parity for nothing.</div>
+      </div>
+      <div class="card">
+        <div class="ey coral">One source of truth</div>
+        <div style="font-family: var(--font-serif); font-size: 18px; line-height: 1.45; margin-top: 10px;">Tokens declared in <code class="t-mono">design-tokens/</code> emit both Tailwind theme extensions and CSS variables, so utilities and inline SVG fills read the same value.</div>
+      </div>
+      <div class="card">
+        <div class="ey coral">Refuse, don't extend</div>
+        <div style="font-family: var(--font-serif); font-size: 18px; line-height: 1.45; margin-top: 10px;">When something doesn't fit, the answer is a component or a justified <code class="t-mono">custom/</code> escape hatch — not a new color, font, or spacing value.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 02 COLOR                                               -->
+  <!-- ===================================================== -->
+  <section class="spec" id="color">
+    <div class="head"><span class="n">02</span><span class="ti">Color</span></div>
+    <p class="intro">Three accent families &mdash; <strong>sage</strong>, <strong>coral</strong>, and <strong>butter</strong> &mdash; sit on a warm linen surface stack and a deep green-black ink stack. Hues are declared in <code class="t-mono">oklch()</code> so the dark-mode flip preserves perceptual relationships.</p>
+
+    <div class="sub-h">Surface stack &mdash; the page beneath everything</div>
+    <div class="grid-4">
+      <div class="sw"><div class="chip" style="background: var(--color-bg)"></div><div class="meta"><div class="role">bg</div><div class="tw">bg-bg</div><div class="v">#F4F2EC · linen</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-surface); border-bottom: 1px solid var(--color-border)"></div><div class="meta"><div class="role">surface</div><div class="tw">bg-surface</div><div class="v">#FFFFFF</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-surface-2)"></div><div class="meta"><div class="role">surface-2</div><div class="tw">bg-surface-2</div><div class="v">#F9F7F1</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-surface-3)"></div><div class="meta"><div class="role">surface-3</div><div class="tw">bg-surface-3</div><div class="v">#ECE8DC</div></div></div>
+    </div>
+
+    <div class="sub-h">Ink &mdash; text and dense graphics</div>
+    <div class="grid-4">
+      <div class="sw"><div class="chip" style="background: var(--color-ink)"></div><div class="meta"><div class="role">ink</div><div class="tw">text-ink</div><div class="v">#16201A · primary</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-ink-2)"></div><div class="meta"><div class="role">ink-2</div><div class="tw">text-ink-2</div><div class="v">66% · prose secondary</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-ink-3)"></div><div class="meta"><div class="role">ink-3</div><div class="tw">text-ink-3</div><div class="v">44% · captions, eyebrows</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-ink-4)"></div><div class="meta"><div class="role">ink-4</div><div class="tw">text-ink-4</div><div class="v">28% · disabled, dividers</div></div></div>
+    </div>
+
+    <div class="sub-h">Borders &mdash; three weights, never invented</div>
+    <div class="grid-3">
+      <div class="sw"><div class="chip" style="background: var(--color-surface); border-bottom: 1px solid var(--color-border-soft); position: relative;"><div style="position: absolute; inset: 18px; border: 1px solid var(--color-border-soft); border-radius: 6px;"></div></div><div class="meta"><div class="role">border-soft</div><div class="tw">border-border-soft</div><div class="v">5% · default card edge</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-surface); position: relative;"><div style="position: absolute; inset: 18px; border: 1px solid var(--color-border); border-radius: 6px;"></div></div><div class="meta"><div class="role">border</div><div class="tw">border-border</div><div class="v">10% · structural divider</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-surface); position: relative;"><div style="position: absolute; inset: 18px; border: 1px dashed var(--color-border-hi); border-radius: 6px;"></div></div><div class="meta"><div class="role">border-hi</div><div class="tw">border-border-hi</div><div class="v">18% · stubs, emphasis</div></div></div>
+    </div>
+
+    <div class="sub-h">Accent &middot; sage &mdash; <span class="muted">information, mechanism, system events, active state</span></div>
+    <div class="grid-4">
+      <div class="sw"><div class="chip" style="background: var(--color-accent-sage)"></div><div class="meta"><div class="role">accent-sage</div><div class="tw">bg-sage / text-sage</div><div class="v">oklch(48% 0.07 155)</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-accent-sage-ink)"></div><div class="meta"><div class="role">sage-ink</div><div class="tw">text-sage-ink</div><div class="v">oklch(35% 0.07 155)</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-accent-sage-soft)"></div><div class="meta"><div class="role">sage-soft</div><div class="tw">bg-sage-soft</div><div class="v">oklch(92% 0.04 155)</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-accent-sage-bg)"></div><div class="meta"><div class="role">sage-bg</div><div class="tw">bg-sage-bg</div><div class="v">oklch(96% 0.025 155)</div></div></div>
+    </div>
+
+    <div class="sub-h">Accent &middot; coral &mdash; <span class="muted">concept, entity, next-action, primary CTA highlight</span></div>
+    <div class="grid-4">
+      <div class="sw"><div class="chip" style="background: var(--color-accent-coral)"></div><div class="meta"><div class="role">accent-coral</div><div class="tw">bg-coral / text-coral</div><div class="v">oklch(62% 0.16 30)</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-accent-coral-ink)"></div><div class="meta"><div class="role">coral-ink</div><div class="tw">text-coral-ink</div><div class="v">oklch(45% 0.16 30)</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-accent-coral-soft)"></div><div class="meta"><div class="role">coral-soft</div><div class="tw">bg-coral-soft</div><div class="v">oklch(94% 0.05 30)</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-accent-coral-bg)"></div><div class="meta"><div class="role">coral-bg</div><div class="tw">bg-coral-bg</div><div class="v">oklch(97% 0.025 30)</div></div></div>
+    </div>
+
+    <div class="sub-h">Accent &middot; butter &mdash; <span class="muted">caution, maintenance, aside, "before you continue"</span></div>
+    <div class="grid-4">
+      <div class="sw"><div class="chip" style="background: var(--color-accent-butter)"></div><div class="meta"><div class="role">accent-butter</div><div class="tw">bg-butter</div><div class="v">oklch(86% 0.10 90)</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-accent-butter-ink)"></div><div class="meta"><div class="role">butter-ink</div><div class="tw">text-butter-ink</div><div class="v">oklch(48% 0.10 80)</div></div></div>
+      <div class="sw"><div class="chip" style="background: var(--color-accent-butter-bg)"></div><div class="meta"><div class="role">butter-bg</div><div class="tw">bg-butter-bg</div><div class="v">oklch(96% 0.03 90)</div></div></div>
+      <div class="sw"><div class="chip chk"></div><div class="meta"><div class="role">— reserved</div><div class="tw">no fourth accent</div><div class="v">three is the cap</div></div></div>
+    </div>
+
+    <div class="sub-h">Role assignments &mdash; what each color means in practice</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Surface</th><th>Used for</th><th>Paired ink</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">bg</td><td>Outermost page background, top bar, right-rail</td><td class="mono">ink / ink-2</td></tr>
+          <tr><td class="mono">surface</td><td>Cards, nav panel, hover-card popovers, code chips</td><td class="mono">ink / ink-2</td></tr>
+          <tr><td class="mono">surface-2</td><td>Hovered list rows, secondary buttons, sub-panels</td><td class="mono">ink-2</td></tr>
+          <tr><td class="mono">surface-3</td><td>Inline code chip, step-number tile, muted pills</td><td class="mono">coral-ink for code</td></tr>
+          <tr><td class="mono">sage-bg</td><td>Mental-model card, info callout, active nav row</td><td class="mono">ink / sage-ink</td></tr>
+          <tr><td class="mono">coral-bg</td><td>Common-misconception card, warn callout, EntityRef chip</td><td class="mono">ink / coral-ink</td></tr>
+          <tr><td class="mono">butter-bg</td><td>Before-you-continue card, aside callout</td><td class="mono">ink / butter-ink</td></tr>
+          <tr><td class="mono">ink</td><td>Key-takeaways slab, primary button, pagination "next", dark mark</td><td class="mono">bg / coral for accent</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 03 TYPOGRAPHY                                          -->
+  <!-- ===================================================== -->
+  <section class="spec" id="type">
+    <div class="head"><span class="n">03</span><span class="ti">Typography</span></div>
+    <p class="intro">A three-family pairing &mdash; <strong>Source Serif 4</strong> for reading prose and editorial headings, <strong>Manrope</strong> for UI chrome and labels, <strong>JetBrains Mono</strong> for code and metadata. The Tailwind <code class="t-mono">text-*</code> scale is replaced wholesale by named roles; size, weight, leading, and tracking ship together.</p>
+
+    <div class="sub-h">Families</div>
+    <div class="grid-3">
+      <div class="card">
+        <div class="ey">Editorial · reading</div>
+        <div style="font-family: var(--font-serif); font-size: 32px; line-height: 1.1; margin-top: 12px;">Source Serif 4</div>
+        <div class="t-caption" style="margin-top: 6px;">Hero, h1–h3, lead, body prose, mental-model cards.</div>
+        <div class="inline-tag" style="margin-top: 12px;">font-serif</div>
+      </div>
+      <div class="card">
+        <div class="ey">Chrome · UI</div>
+        <div style="font-family: var(--font-sans); font-size: 30px; font-weight: 700; line-height: 1.1; margin-top: 12px;">Manrope</div>
+        <div class="t-caption" style="margin-top: 6px;">Labels, buttons, eyebrows, nav, captions.</div>
+        <div class="inline-tag" style="margin-top: 12px;">font-sans</div>
+      </div>
+      <div class="card">
+        <div class="ey">Metadata · code</div>
+        <div style="font-family: var(--font-mono); font-size: 26px; font-weight: 500; line-height: 1.1; margin-top: 14px;">JetBrains Mono</div>
+        <div class="t-caption" style="margin-top: 6px;">Inline code, entity names, IDs, eyebrows, counts.</div>
+        <div class="inline-tag" style="margin-top: 12px;">font-mono</div>
+      </div>
+    </div>
+
+    <div class="sub-h">Type roles &mdash; the entire <code class="t-mono">text-*</code> vocabulary</div>
+
+    <div class="type-row">
+      <div class="key"><div class="role">display</div><div class="tw">text-display</div><div class="v">serif · 56 / 1.02 · 500 · −0.025em</div></div>
+      <div class="t-display">How Postgres MVCC works</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">h1</div><div class="tw">text-h1</div><div class="v">serif · 40 / 1.08 · 500 · −0.02em</div></div>
+      <div class="t-h1">Foundations</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">h2</div><div class="tw">text-h2</div><div class="v">serif · 28 / 1.2 · 500 · −0.015em</div></div>
+      <div class="t-h2">Two ideas, then one design</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">h3</div><div class="tw">text-h3</div><div class="v">serif · 22 / 1.25 · 500</div></div>
+      <div class="t-h3">What happens on a single UPDATE</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">lead</div><div class="tw">text-lead</div><div class="v">serif · 21 / 1.42 · 400 · ink-2</div></div>
+      <div class="t-lead">Before xmin, before snapshots, before VACUUM — we need to agree on what a database is hiding from each transaction.</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">body</div><div class="tw">text-body</div><div class="v">serif · 18 / 1.62 · 400</div></div>
+      <div class="t-body">Every write makes a new row. An UPDATE doesn't change a row in place; it writes a new tuple and marks the old one as superseded.</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">body-sans</div><div class="tw">text-body-sans</div><div class="v">sans · 14 / 1.55 · 400 · ink-2</div></div>
+      <div class="t-body-sans">Used for UI body inside cards — the right rail, callout body when the tone is utility rather than reading.</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">label</div><div class="tw">text-label</div><div class="v">sans · 13 / 1.3 · 600</div></div>
+      <div class="t-label">Knowledge graph</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">caption</div><div class="tw">text-caption</div><div class="v">sans · 12 / 1.4 · 400 · ink-3</div></div>
+      <div class="t-caption">7 sections · ≈ 45 min · built 2 minutes ago</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">eyebrow</div><div class="tw">text-eyebrow</div><div class="v">mono · 11 · 700 · 0.14em · uppercase</div></div>
+      <div class="t-eyebrow">Mental model · introducing</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">mono</div><div class="tw">text-mono</div><div class="v">mono · 12 / 1.4 · 500</div></div>
+      <div class="t-mono">postgres-mvcc / §03 · snapshots</div>
+    </div>
+    <div class="type-row">
+      <div class="key"><div class="role">code</div><div class="tw">text-code</div><div class="v">mono · 13 / 1.55 · 500</div></div>
+      <div class="t-code">SELECT xmin, xmax FROM pg_class;</div>
+    </div>
+
+    <div class="sub-h">Conventions</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th style="width: 30%;">Where</th><th>Family</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Section titles, headings, prose, mental-model body, takeaway items</td><td class="mono">serif</td><td><span class="desc">The voice of the report; long-form reading.</span></td></tr>
+          <tr><td>Nav, top bar, buttons, callout titles, eyebrows, labels</td><td class="mono">sans</td><td><span class="desc">UI chrome — must read at small sizes and stay tight.</span></td></tr>
+          <tr><td>Entity names, IDs, paths, section numbers, counts, inline code</td><td class="mono">mono</td><td><span class="desc">Anything that is data, not language.</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 04 SPACING                                             -->
+  <!-- ===================================================== -->
+  <section class="spec" id="space">
+    <div class="head"><span class="n">04</span><span class="ti">Spacing</span></div>
+    <p class="intro">Tailwind's default spacing scale is kept &mdash; it's already constrained, already familiar, and already what authors will reach for. Three semantic aliases are added for rhythm-critical cases. Off-scale values are rejected by the config.</p>
+
+    <div class="sub-h">The kept scale (4&nbsp;px base)</div>
+    <div class="card" style="padding: 16px 22px;">
+      <div class="spacer-row"><div class="lbl">0.5 · 2px</div><div class="bar" style="width: 2px;"></div></div>
+      <div class="spacer-row"><div class="lbl">1 · 4px</div><div class="bar" style="width: 4px;"></div></div>
+      <div class="spacer-row"><div class="lbl">2 · 8px</div><div class="bar" style="width: 8px;"></div></div>
+      <div class="spacer-row"><div class="lbl">3 · 12px</div><div class="bar" style="width: 12px;"></div></div>
+      <div class="spacer-row"><div class="lbl">4 · 16px</div><div class="bar" style="width: 16px;"></div></div>
+      <div class="spacer-row"><div class="lbl">5 · 20px</div><div class="bar" style="width: 20px;"></div></div>
+      <div class="spacer-row"><div class="lbl">6 · 24px</div><div class="bar" style="width: 24px;"></div></div>
+      <div class="spacer-row"><div class="lbl">8 · 32px</div><div class="bar" style="width: 32px;"></div></div>
+      <div class="spacer-row"><div class="lbl">10 · 40px</div><div class="bar" style="width: 40px;"></div></div>
+      <div class="spacer-row"><div class="lbl">12 · 48px</div><div class="bar" style="width: 48px;"></div></div>
+      <div class="spacer-row"><div class="lbl">14 · 56px</div><div class="bar" style="width: 56px;"></div></div>
+      <div class="spacer-row"><div class="lbl">16 · 64px</div><div class="bar" style="width: 64px;"></div></div>
+    </div>
+
+    <div class="sub-h">Semantic aliases</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Alias</th><th>Resolves to</th><th>Used by</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">space-block</td><td class="mono">space-7 · 28px</td><td>Gap between content blocks in the guided reader column.</td></tr>
+          <tr><td class="mono">space-section</td><td class="mono">space-14 · 56px</td><td>Gap between major sections; reading-column header to body.</td></tr>
+          <tr><td class="mono">gutter-rail</td><td class="mono">space-6 · 24px</td><td>Right-rail padding; left-nav padding.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-h">Off-scale</div>
+    <div class="card">
+      <div class="t-body" style="margin: 0;">The Tailwind config <strong>removes</strong> the arbitrary-value escape (<code class="t-mono">p-[17px]</code>) for spacing. If a layout needs a number that isn't in the scale, the right move is either a new alias (rare) or — far more often — a component that owns its internal spacing.</div>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 05 RADIUS                                              -->
+  <!-- ===================================================== -->
+  <section class="spec" id="radius">
+    <div class="head"><span class="n">05</span><span class="ti">Radii</span></div>
+    <p class="intro">Eight steps, each tied to a kind of object. Generous on cards (soft cushion of paper), sharper on chips and code (data, not language), pill for tabs and buttons.</p>
+
+    <div class="grid-6" style="margin-bottom: 14px;">
+      <div class="radius-tile"><div class="shape" style="border-radius: 0;"></div><div class="lbl">none</div><div class="v">0</div></div>
+      <div class="radius-tile"><div class="shape" style="border-radius: 4px;"></div><div class="lbl">xs</div><div class="v">4 · code chip</div></div>
+      <div class="radius-tile"><div class="shape" style="border-radius: 6px;"></div><div class="lbl">sm</div><div class="v">6 · chip, pill-tag</div></div>
+      <div class="radius-tile"><div class="shape" style="border-radius: 8px;"></div><div class="lbl">md</div><div class="v">8 · nav row</div></div>
+      <div class="radius-tile"><div class="shape" style="border-radius: 10px;"></div><div class="lbl">lg</div><div class="v">10 · step tile</div></div>
+      <div class="radius-tile"><div class="shape" style="border-radius: 12px;"></div><div class="lbl">xl</div><div class="v">12 · popover</div></div>
+    </div>
+    <div class="grid-6">
+      <div class="radius-tile"><div class="shape" style="border-radius: 14px;"></div><div class="lbl">2xl</div><div class="v">14 · block</div></div>
+      <div class="radius-tile"><div class="shape" style="border-radius: 18px;"></div><div class="lbl">3xl</div><div class="v">18 · bento card</div></div>
+      <div class="radius-tile"><div class="shape" style="border-radius: 999px; width: 76px;"></div><div class="lbl">pill</div><div class="v">999 · button, tab</div></div>
+      <div class="radius-tile"><div class="shape" style="border-radius: 999px; width: 56px;"></div><div class="lbl">full</div><div class="v">999 · dot, avatar</div></div>
+      <div class="radius-tile" style="opacity: 0.35;"><div class="shape" style="border-radius: 24px;"></div><div class="lbl">— reserved</div><div class="v">no new step</div></div>
+      <div class="radius-tile" style="opacity: 0.35;"><div class="shape" style="border-radius: 32px;"></div><div class="lbl">— reserved</div><div class="v">no new step</div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 06 ELEVATION                                           -->
+  <!-- ===================================================== -->
+  <section class="spec" id="elevation">
+    <div class="head"><span class="n">06</span><span class="ti">Elevation</span></div>
+    <p class="intro">Two shadows, no third. Trellis surfaces sit flat against the page; elevation appears only when something is genuinely floating (hover-card, focused dropdown). Borders carry the rest of the depth signal.</p>
+
+    <div class="grid-3">
+      <div class="shadow-tile">
+        <div class="shadow-card" style="border: 1px solid var(--color-border-soft);"></div>
+        <div><div class="ey">none · resting</div><div class="t-caption" style="text-align: center; margin-top: 4px;">Cards, blocks, nav rows.</div></div>
+      </div>
+      <div class="shadow-tile">
+        <div class="shadow-card" style="box-shadow: var(--shadow-sm); border: 1px solid var(--color-border-soft);"></div>
+        <div><div class="ey">shadow-sm</div><div class="t-caption" style="text-align: center; margin-top: 4px;">Top bar on scroll, sticky surfaces.</div></div>
+      </div>
+      <div class="shadow-tile">
+        <div class="shadow-card" style="box-shadow: var(--shadow-pop);"></div>
+        <div><div class="ey">shadow-pop</div><div class="t-caption" style="text-align: center; margin-top: 4px;">EntityRef hover-card, dropdown menus.</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 14px;">
+      <div class="t-body" style="margin: 0;">There is no <code class="t-mono">shadow-md</code> or <code class="t-mono">shadow-lg</code>. If a surface needs to feel higher than <code class="t-mono">none</code> but isn't <em>floating</em>, the answer is a <code class="t-mono">border-border</code> or a switch to <code class="t-mono">bg-surface-2</code>, not a new shadow.</div>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 07 MOTION                                              -->
+  <!-- ===================================================== -->
+  <section class="spec" id="motion">
+    <div class="head"><span class="n">07</span><span class="ti">Motion</span></div>
+    <p class="intro">Motion is for confirming continuity, not commanding attention. Three durations and one easing curve cover the system.</p>
+
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Token</th><th>Duration</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">--motion-fast</td><td class="mono">120ms</td><td>Hover state changes, color flips, button presses.</td></tr>
+          <tr><td class="mono">--motion-med</td><td class="mono">220ms</td><td>View enter, panel slide-in, pagination "next" lean.</td></tr>
+          <tr><td class="mono">--motion-slow</td><td class="mono">360ms</td><td>Graph layout transitions, focus-to-spotlight.</td></tr>
+          <tr><td class="mono">--ease-out</td><td class="mono">cubic-bezier(.2, .7, .3, 1)</td><td>Single curve for the whole system. No bounces, no springs.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 14px;">
+      <div class="t-body" style="margin: 0;">Two named keyframes are exposed: <code class="t-mono">animate-view-enter</code> (fade + 4&nbsp;px lift, <code class="t-mono">--motion-med</code>) for route transitions, and <code class="t-mono">animate-pop-in</code> (fade + scale 0.98→1, <code class="t-mono">--motion-fast</code>) for popovers. Other animations are component-local and must stay within these durations.</div>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 08 TAILWIND                                            -->
+  <!-- ===================================================== -->
+  <section class="spec" id="tailwind">
+    <div class="head"><span class="n">08</span><span class="ti">Tailwind configuration</span></div>
+    <p class="intro">The Tailwind config is the gate. It does three things: it disables the default color palette and font-size scale; it adds the design tokens by reading the CSS-variable source of truth; and it forbids arbitrary values for any token category the system has opinions about.</p>
+
+    <div class="code"><span class="cm">// packages/engine/design-tokens/tailwind.config.ts</span>
+<span class="kw">import</span> <span class="pr">type</span> { Config } <span class="kw">from</span> <span class="st">"tailwindcss"</span>;
+
+<span class="kw">export default</span> {
+  content: [<span class="st">"./src/**/*.{ts,tsx,astro,mdx}"</span>],
+  darkMode: [<span class="st">"class"</span>, <span class="st">".dark"</span>],
+
+  <span class="cm">// Step 1 — wipe the default palette and type scale.</span>
+  <span class="cm">// Default `colors: {}` removes red/blue/etc. entirely.</span>
+  theme: {
+    colors: {
+      transparent: <span class="st">"transparent"</span>,
+      current:     <span class="st">"currentColor"</span>,
+
+      <span class="cm">// Surfaces</span>
+      bg:          <span class="st">"var(--color-bg)"</span>,
+      surface:     <span class="st">"var(--color-surface)"</span>,
+      <span class="st">"surface-2"</span>: <span class="st">"var(--color-surface-2)"</span>,
+      <span class="st">"surface-3"</span>: <span class="st">"var(--color-surface-3)"</span>,
+
+      <span class="cm">// Ink</span>
+      ink:    <span class="st">"var(--color-ink)"</span>,
+      <span class="st">"ink-2"</span>: <span class="st">"var(--color-ink-2)"</span>,
+      <span class="st">"ink-3"</span>: <span class="st">"var(--color-ink-3)"</span>,
+      <span class="st">"ink-4"</span>: <span class="st">"var(--color-ink-4)"</span>,
+
+      <span class="cm">// Borders (used by border-*)</span>
+      <span class="st">"border-soft"</span>: <span class="st">"var(--color-border-soft)"</span>,
+      border:        <span class="st">"var(--color-border)"</span>,
+      <span class="st">"border-hi"</span>:   <span class="st">"var(--color-border-hi)"</span>,
+
+      <span class="cm">// Accents — three families, four roles each</span>
+      sage:        <span class="st">"var(--color-accent-sage)"</span>,
+      <span class="st">"sage-ink"</span>:  <span class="st">"var(--color-accent-sage-ink)"</span>,
+      <span class="st">"sage-soft"</span>: <span class="st">"var(--color-accent-sage-soft)"</span>,
+      <span class="st">"sage-bg"</span>:   <span class="st">"var(--color-accent-sage-bg)"</span>,
+
+      coral:        <span class="st">"var(--color-accent-coral)"</span>,
+      <span class="st">"coral-ink"</span>:  <span class="st">"var(--color-accent-coral-ink)"</span>,
+      <span class="st">"coral-soft"</span>: <span class="st">"var(--color-accent-coral-soft)"</span>,
+      <span class="st">"coral-bg"</span>:   <span class="st">"var(--color-accent-coral-bg)"</span>,
+
+      butter:        <span class="st">"var(--color-accent-butter)"</span>,
+      <span class="st">"butter-ink"</span>:  <span class="st">"var(--color-accent-butter-ink)"</span>,
+      <span class="st">"butter-bg"</span>:   <span class="st">"var(--color-accent-butter-bg)"</span>,
+    },
+
+    <span class="cm">// Step 2 — type roles, not sizes.</span>
+    fontFamily: {
+      sans:  [<span class="st">"var(--font-sans)"</span>],
+      serif: [<span class="st">"var(--font-serif)"</span>],
+      mono:  [<span class="st">"var(--font-mono)"</span>],
+    },
+    fontSize: {
+      display: [<span class="st">"3.5rem"</span>,  { lineHeight: <span class="st">"1.02"</span>, letterSpacing: <span class="st">"-0.025em"</span>, fontWeight: <span class="st">"500"</span> }],
+      h1:      [<span class="st">"2.5rem"</span>,  { lineHeight: <span class="st">"1.08"</span>, letterSpacing: <span class="st">"-0.02em"</span>,  fontWeight: <span class="st">"500"</span> }],
+      h2:      [<span class="st">"1.75rem"</span>, { lineHeight: <span class="st">"1.2"</span>,  letterSpacing: <span class="st">"-0.015em"</span>, fontWeight: <span class="st">"500"</span> }],
+      h3:      [<span class="st">"1.375rem"</span>,{ lineHeight: <span class="st">"1.25"</span>, letterSpacing: <span class="st">"-0.005em"</span>, fontWeight: <span class="st">"500"</span> }],
+      lead:    [<span class="st">"1.3125rem"</span>,{ lineHeight: <span class="st">"1.42"</span> }],
+      body:    [<span class="st">"1.125rem"</span>,{ lineHeight: <span class="st">"1.62"</span> }],
+      <span class="st">"body-sans"</span>: [<span class="st">"0.875rem"</span>, { lineHeight: <span class="st">"1.55"</span> }],
+      label:   [<span class="st">"0.8125rem"</span>,{ lineHeight: <span class="st">"1.3"</span>, fontWeight: <span class="st">"600"</span> }],
+      caption: [<span class="st">"0.75rem"</span>, { lineHeight: <span class="st">"1.4"</span> }],
+      eyebrow: [<span class="st">"0.6875rem"</span>,{ lineHeight: <span class="st">"1.1"</span>, letterSpacing: <span class="st">"0.14em"</span>, fontWeight: <span class="st">"700"</span> }],
+      mono:    [<span class="st">"0.75rem"</span>, { lineHeight: <span class="st">"1.4"</span> }],
+      code:    [<span class="st">"0.8125rem"</span>,{ lineHeight: <span class="st">"1.55"</span> }],
+    },
+
+    <span class="cm">// Step 3 — extend spacing only with semantic aliases.</span>
+    extend: {
+      spacing: {
+        block:   <span class="st">"1.75rem"</span>,  <span class="cm">// gap between content blocks</span>
+        section: <span class="st">"3.5rem"</span>,
+        rail:    <span class="st">"1.5rem"</span>,
+      },
+      borderRadius: {
+        xs:  <span class="st">"4px"</span>,
+        sm:  <span class="st">"6px"</span>,
+        md:  <span class="st">"8px"</span>,
+        lg:  <span class="st">"10px"</span>,
+        xl:  <span class="st">"12px"</span>,
+        <span class="st">"2xl"</span>: <span class="st">"14px"</span>,
+        <span class="st">"3xl"</span>: <span class="st">"18px"</span>,
+      },
+      boxShadow: {
+        sm:  <span class="st">"var(--shadow-sm)"</span>,
+        pop: <span class="st">"var(--shadow-pop)"</span>,
+      },
+      transitionTimingFunction: {
+        out: <span class="st">"cubic-bezier(.2,.7,.3,1)"</span>,
+      },
+      transitionDuration: {
+        fast: <span class="st">"120ms"</span>,
+        med:  <span class="st">"220ms"</span>,
+        slow: <span class="st">"360ms"</span>,
+      },
+    },
+  },
+
+  <span class="cm">// Step 4 — refuse arbitrary values for opinionated categories.</span>
+  <span class="cm">// Enforced via @tailwindcss/forbid-arbitrary-values plugin scoped to</span>
+  <span class="cm">// `colors`, `fontSize`, `borderRadius`, `boxShadow`.</span>
+  plugins: [forbidArbitrary({ scopes: [<span class="st">"colors"</span>, <span class="st">"fontSize"</span>, <span class="st">"borderRadius"</span>, <span class="st">"boxShadow"</span>] })],
+} <span class="kw">satisfies</span> Config;
+</div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 09 UTILITIES                                           -->
+  <!-- ===================================================== -->
+  <section class="spec" id="utilities">
+    <div class="head"><span class="n">09</span><span class="ti">Semantic utilities</span></div>
+    <p class="intro">A compact catalogue of the only utility classes that actually exist after the config above. Anything not in this list is either a spacing class (kept) or a layout primitive Tailwind ships untouched (flex, grid, gap-*, etc.).</p>
+
+    <div class="sub-h">Background</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Class</th><th>Token</th><th>Typical use</th></tr></thead>
+        <tbody>
+          <tr><td class="tw">bg-bg</td><td class="mono">--color-bg</td><td>Outermost page, top bar, right rail.</td></tr>
+          <tr><td class="tw">bg-surface</td><td class="mono">--color-surface</td><td>Cards, popovers, nav panel.</td></tr>
+          <tr><td class="tw">bg-surface-2</td><td class="mono">--color-surface-2</td><td>Hovered rows, secondary buttons.</td></tr>
+          <tr><td class="tw">bg-surface-3</td><td class="mono">--color-surface-3</td><td>Inline code chip, step tile.</td></tr>
+          <tr><td class="tw">bg-sage-bg · bg-coral-bg · bg-butter-bg</td><td class="mono">--color-accent-*-bg</td><td>Tinted callouts, mental-model card, misconception card.</td></tr>
+          <tr><td class="tw">bg-ink</td><td class="mono">--color-ink</td><td>Key-takeaways slab, primary button.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-h">Text</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Class</th><th>Token</th><th>Typical use</th></tr></thead>
+        <tbody>
+          <tr><td class="tw">text-ink / -2 / -3 / -4</td><td class="mono">--color-ink, ink-2…</td><td>Primary → quaternary text. Never use grey utilities outside this scale.</td></tr>
+          <tr><td class="tw">text-sage · text-sage-ink</td><td class="mono">--color-accent-sage*</td><td>Active state, info chrome, "in section" markers.</td></tr>
+          <tr><td class="tw">text-coral · text-coral-ink</td><td class="mono">--color-accent-coral*</td><td>Entity references, "next" pagination eyebrow.</td></tr>
+          <tr><td class="tw">text-butter-ink</td><td class="mono">--color-accent-butter-ink</td><td>Aside/maintenance labels.</td></tr>
+          <tr><td class="tw">text-display · text-h1 · text-h2 · text-h3</td><td>—</td><td>Headings — never combine with explicit weight/leading.</td></tr>
+          <tr><td class="tw">text-lead · text-body</td><td>—</td><td>Long-form reading prose.</td></tr>
+          <tr><td class="tw">text-body-sans · text-label · text-caption · text-eyebrow · text-mono · text-code</td><td>—</td><td>UI chrome &amp; metadata.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-h">Border &amp; radius</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Class</th><th>Token</th><th>Typical use</th></tr></thead>
+        <tbody>
+          <tr><td class="tw">border-border-soft</td><td class="mono">--color-border-soft</td><td>Default card edge — almost invisible.</td></tr>
+          <tr><td class="tw">border-border</td><td class="mono">--color-border</td><td>Structural divider (top bar, right rail).</td></tr>
+          <tr><td class="tw">border-border-hi</td><td class="mono">--color-border-hi</td><td>Dashed stubs, emphasized edges.</td></tr>
+          <tr><td class="tw">rounded-xs … rounded-3xl, rounded-full</td><td>—</td><td>Eight radii; nothing in between.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-h">Removed</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Won't exist</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">bg-red-500, text-blue-600, etc.</td><td>The default palette is deleted, not overridden. Tailwind's <code class="t-mono">colors</code> key is an exhaustive replacement.</td></tr>
+          <tr><td class="mono">text-sm, text-lg, text-xl, …</td><td>Replaced by role-named scale. <code class="t-mono">text-body</code>, not <code class="t-mono">text-base</code>.</td></tr>
+          <tr><td class="mono">shadow, shadow-md, shadow-lg, shadow-xl</td><td>Only <code class="t-mono">shadow-sm</code> and <code class="t-mono">shadow-pop</code> exist.</td></tr>
+          <tr><td class="mono">font-thin, font-light, font-extrabold, font-black</td><td>Weights are baked into the type roles. Loose <code class="t-mono">font-*</code> utilities aren't shipped.</td></tr>
+          <tr><td class="mono">bg-[#abc123], text-[14.5px], rounded-[17px]</td><td>Arbitrary-value escape is forbidden by plugin for the four opinionated categories.</td></tr>
+          <tr><td class="mono">dark:bg-*, dark:text-*</td><td>Not needed for color. Semantic tokens flip under <code class="t-mono">.dark</code>. Reserve <code class="t-mono">dark:</code> for structurally different markup (rare).</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 10 cn() & cva                                          -->
+  <!-- ===================================================== -->
+  <section class="spec" id="cn">
+    <div class="head"><span class="n">10</span><span class="ti">cn() &amp; class-variance-authority</span></div>
+    <p class="intro">Two helpers bridge "utility soup" and "typed components". Every component in the engine uses both.</p>
+
+    <div class="sub-h"><code class="t-mono">cn()</code> &mdash; merge utilities, resolve conflicts</div>
+    <div class="code"><span class="cm">// packages/engine/utils/cn.ts</span>
+<span class="kw">import</span> { clsx, <span class="pr">type</span> ClassValue } <span class="kw">from</span> <span class="st">"clsx"</span>;
+<span class="kw">import</span> { twMerge } <span class="kw">from</span> <span class="st">"tailwind-merge"</span>;
+
+<span class="kw">export function</span> cn(...inputs: ClassValue[]) {
+  <span class="kw">return</span> twMerge(clsx(inputs));
+}
+</div>
+
+    <div class="sub-h"><code class="t-mono">cva()</code> &mdash; the variant table for a component</div>
+    <div class="code"><span class="cm">// packages/engine/components/content/Callout.tsx</span>
+<span class="kw">import</span> { cva, <span class="pr">type</span> VariantProps } <span class="kw">from</span> <span class="st">"class-variance-authority"</span>;
+<span class="kw">import</span> { cn } <span class="kw">from</span> <span class="st">"@engine/utils/cn"</span>;
+
+<span class="kw">const</span> callout = cva(
+  <span class="st">"grid grid-cols-[28px_1fr] gap-3 rounded-2xl px-5 py-4 border border-border-soft"</span>,
+  {
+    variants: {
+      tone: {
+        info:  <span class="st">"bg-sage-bg   [&_.glyph]:bg-sage"</span>,
+        warn:  <span class="st">"bg-coral-bg  [&_.glyph]:bg-coral"</span>,
+        aside: <span class="st">"bg-butter-bg [&_.glyph]:bg-butter-ink"</span>,
+        quote: <span class="st">"bg-surface   [&_.glyph]:bg-ink"</span>,
+      },
+    },
+    defaultVariants: { tone: <span class="st">"info"</span> },
+  }
+);
+
+<span class="kw">type</span> Props = VariantProps&lt;<span class="kw">typeof</span> callout&gt; &amp; {
+  title: <span class="pr">string</span>;
+  children: React.ReactNode;
+  className?: <span class="pr">string</span>;
+};
+
+<span class="kw">export function</span> Callout({ tone, title, children, className }: Props) {
+  <span class="kw">return</span> (
+    &lt;<span class="pr">aside</span> className={cn(callout({ tone }), className)}&gt;
+      &lt;<span class="pr">div</span> className=<span class="st">"glyph grid place-items-center w-6 h-6 rounded-full text-bg font-serif text-label font-bold"</span>&gt;?&lt;/<span class="pr">div</span>&gt;
+      &lt;<span class="pr">div</span>&gt;
+        &lt;<span class="pr">div</span> className=<span class="st">"text-label font-bold text-coral"</span>&gt;{title}&lt;/<span class="pr">div</span>&gt;
+        &lt;<span class="pr">div</span> className=<span class="st">"text-body mt-1"</span>&gt;{children}&lt;/<span class="pr">div</span>&gt;
+      &lt;/<span class="pr">div</span>&gt;
+    &lt;/<span class="pr">aside</span>&gt;
+  );
+}
+</div>
+
+    <div class="card" style="margin-top: 14px;">
+      <div class="t-body" style="margin: 0;">Authors never look inside this file. They call <code class="t-mono">&lt;Callout tone="warn" title="..."&gt;</code>. The variant table is the only place tone-to-class mapping lives, and Storybook exposes every combination by enumerating <code class="t-mono">VariantProps</code>.</div>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 11 CARD                                                -->
+  <!-- ===================================================== -->
+  <section class="spec" id="card">
+    <div class="head"><span class="n">11</span><span class="ti">Card &amp; surface</span></div>
+    <p class="intro">The atom underneath every block. <code class="t-mono">&lt;Card&gt;</code> is unstyled-by-default surface with a soft edge; variants change the fill and accent treatment.</p>
+
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Prop</th><th>Values</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">surface</td><td class="mono">default · raised · sunken · ink</td><td><span class="desc">default = <code class="t-mono">bg-surface</code>; raised = adds <code class="t-mono">shadow-sm</code>; sunken = <code class="t-mono">bg-surface-2</code>; ink = inverted slab.</span></td></tr>
+          <tr><td class="mono">accent</td><td class="mono">none · sage · coral · butter</td><td><span class="desc">Adds a 4px left border in the accent color. Use sparingly — the "concept introducing" treatment.</span></td></tr>
+          <tr><td class="mono">tone</td><td class="mono">none · sage · coral · butter</td><td><span class="desc">Tints the background to <code class="t-mono">bg-*-bg</code>. Mutually exclusive with <code class="t-mono">accent</code> in practice.</span></td></tr>
+          <tr><td class="mono">pad</td><td class="mono">tight · default · loose</td><td><span class="desc">Maps to 14·16 / 20·22 / 26·28 padding pairs.</span></td></tr>
+          <tr><td class="mono">radius</td><td class="mono">xl · 2xl · 3xl</td><td><span class="desc">Default <code class="t-mono">3xl</code> (18px) — the Trellis bento radius.</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 12 BLOCKS                                              -->
+  <!-- ===================================================== -->
+  <section class="spec" id="blocks">
+    <div class="head"><span class="n">12</span><span class="ti">Content blocks</span></div>
+    <p class="intro">The teaching components — each is a fixed recipe of card + accent + type roles. The agent picks the block by pedagogical intent; the recipe locks the visual treatment.</p>
+
+    <div class="preview">
+
+      <div>
+        <div class="ey">ConceptIntro · concept</div>
+        <div class="block-concept" style="margin-top: 8px;">
+          <div class="ey coral">Concept · introducing</div>
+          <div class="t-h3" style="margin-top: 8px;">What's the problem MVCC is solving?</div>
+          <div class="t-body" style="margin-top: 12px;">A database is a single, shared piece of state. The moment two clients are reading and writing at the same time, the system has to decide whose view of the world is real. Locking is one answer. <span class="e-ref">MVCC</span> is a different one — one that lets readers and writers stop blocking each other entirely.</div>
+        </div>
+        <div class="t-caption" style="margin-top: 8px;">Card · accent="coral" · 4px left border · serif body 18/1.62.</div>
+      </div>
+
+      <div>
+        <div class="ey">MentalModel · sage tint</div>
+        <div class="block-mental" style="margin-top: 8px;">
+          <div class="ey sage">Mental model</div>
+          <div class="t-h3" style="margin-top: 8px;">The mental model in one sentence</div>
+          <div class="t-body" style="margin-top: 12px;">Each transaction reads from its own snapshot of the database — a frozen moment that ignores anything that hasn't committed yet, and ignores anything that committed after the snapshot was taken.</div>
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--color-border-soft); font-family: var(--font-sans); font-size: 13.5px; line-height: 1.5; color: var(--color-ink-2); font-style: italic;">If you remember nothing else from this report, remember this: a Postgres reader never sees a half-written world.</div>
+        </div>
+        <div class="t-caption" style="margin-top: 8px;">Card · tone="sage" · sans-serif italic aside under hairline rule.</div>
+      </div>
+
+      <div>
+        <div class="ey">Callout · three tones</div>
+        <div class="stack" style="margin-top: 8px;">
+          <div class="block-callout info">
+            <div class="glyph">i</div>
+            <div>
+              <div class="t-label" style="color: var(--color-accent-sage-ink); margin-bottom: 4px;">Why not just lock?</div>
+              <div class="t-body" style="font-size: 16px; line-height: 1.5;">In a lock-based system, a read takes a shared lock and a write takes an exclusive lock. They wait on each other.</div>
+            </div>
+          </div>
+          <div class="block-callout warn">
+            <div class="glyph">!</div>
+            <div>
+              <div class="t-label" style="color: var(--color-accent-coral); margin-bottom: 4px;">Where this stops being safe</div>
+              <div class="t-body" style="font-size: 16px; line-height: 1.5;">Snapshot isolation is not serializable. Two transactions reading and writing disjoint rows can still produce a state that no serial schedule could.</div>
+            </div>
+          </div>
+          <div class="block-callout aside">
+            <div class="glyph">·</div>
+            <div>
+              <div class="t-label" style="color: var(--color-accent-butter-ink); margin-bottom: 4px;">Aside</div>
+              <div class="t-body" style="font-size: 16px; line-height: 1.5;">Postgres calls these snapshots "MVCC snapshots" internally, but the same idea exists in SQL Server's RCSI and Oracle's read-consistency.</div>
+            </div>
+          </div>
+        </div>
+        <div class="t-caption" style="margin-top: 8px;">tone = info (sage) · warn (coral) · aside (butter). Glyph color matches accent.</div>
+      </div>
+
+      <div>
+        <div class="ey">KeyTakeaways · inverted slab</div>
+        <div class="block-takeaways" style="margin-top: 8px;">
+          <div class="ey coral">Key takeaways</div>
+          <ul>
+            <li>An UPDATE never overwrites — it stamps the old row and appends a new one.</li>
+            <li>The snapshot, not the row, decides what a transaction sees.</li>
+            <li>VACUUM is the only thing standing between live snapshots and disk pressure.</li>
+          </ul>
+        </div>
+        <div class="t-caption" style="margin-top: 8px;">Card · surface="ink" · coral eyebrow + dashes · serif body 17/1.45 in bg color.</div>
+      </div>
+
+      <div>
+        <div class="ey">CommonMisconception · coral tint</div>
+        <div class="block-misc" style="margin-top: 8px;">
+          <div class="ey coral">Common misconception</div>
+          <div class="claim">"MVCC means writes are free — Postgres just appends a new row."</div>
+          <div class="truth"><span class="t-eyebrow" style="color: var(--color-accent-coral); margin-right: 8px;">Actually</span>Every update doubles the row's physical footprint until VACUUM catches up, and the old tuple's xmax write is a real disk write too.</div>
+        </div>
+        <div class="t-caption" style="margin-top: 8px;">Card · tone="coral" · italic claim · inset "Actually" panel on surface.</div>
+      </div>
+
+    </div>
+
+    <div class="sub-h">Recipe table — block to variant mapping</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Block</th><th>Card variant</th><th>Eyebrow</th><th>Body type role</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">ConceptIntro</td><td><code class="t-mono">accent="coral"</code></td><td class="mono">"Concept · introducing"</td><td class="mono">text-body (serif)</td></tr>
+          <tr><td class="mono">MentalModel</td><td><code class="t-mono">tone="sage"</code></td><td class="mono">"Mental model"</td><td class="mono">text-body + sans italic aside</td></tr>
+          <tr><td class="mono">Callout · info</td><td><code class="t-mono">tone="sage"</code></td><td class="mono">— (title only)</td><td class="mono">text-body 16/1.5</td></tr>
+          <tr><td class="mono">Callout · warn</td><td><code class="t-mono">tone="coral"</code></td><td class="mono">— (title only)</td><td class="mono">text-body 16/1.5</td></tr>
+          <tr><td class="mono">Callout · aside</td><td><code class="t-mono">tone="butter"</code></td><td class="mono">— (title only)</td><td class="mono">text-body 16/1.5</td></tr>
+          <tr><td class="mono">StepByStep</td><td><code class="t-mono">surface="default"</code></td><td class="mono">"Step by step"</td><td class="mono">text-body 16/1.5 · numbered surface-3 tiles</td></tr>
+          <tr><td class="mono">KeyTakeaways</td><td><code class="t-mono">surface="ink"</code></td><td class="mono">"Key takeaways" (coral on ink)</td><td class="mono">text-body 17/1.45 in bg</td></tr>
+          <tr><td class="mono">CommonMisconception</td><td><code class="t-mono">tone="coral"</code></td><td class="mono">"Common misconception"</td><td class="mono">claim · serif italic 19 · inset on surface</td></tr>
+          <tr><td class="mono">BeforeYouContinue</td><td><code class="t-mono">tone="butter"</code></td><td class="mono">"Before you continue"</td><td class="mono">text-body 16/1.55 · ink continue-button</td></tr>
+          <tr><td class="mono">CodeBlock</td><td><code class="t-mono">surface="ink"</code></td><td class="mono">filename · mono caption</td><td class="mono">text-code, Shiki-styled</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 13 ENTITY                                              -->
+  <!-- ===================================================== -->
+  <section class="spec" id="entity">
+    <div class="head"><span class="n">13</span><span class="ti">EntityRef</span></div>
+    <p class="intro">The single most-used cross-document affordance. Inline mention, dotted-underline coral chip, hover-card with short def + type badge + jump button.</p>
+
+    <div class="card" style="font-family: var(--font-serif); font-size: 18px; line-height: 1.62;">
+      Each transaction reads from its own <span class="e-ref">snapshot</span> of the database — a frozen moment that determines what <span class="e-ref">xmin</span> and <span class="e-ref">xmax</span> values it considers visible. The <span class="e-ref">VACUUM</span> process reclaims space only when no live snapshot can possibly need a row.
+    </div>
+
+    <div class="sub-h">Anatomy</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Part</th><th>Tokens</th></tr></thead>
+        <tbody>
+          <tr><td>Chip background</td><td class="mono">bg-coral-bg · radius-xs · px-1.5</td></tr>
+          <tr><td>Chip ink</td><td class="mono">text-coral-ink · font-mono · 0.92em · weight 500</td></tr>
+          <tr><td>Underline</td><td class="mono">border-b border-dotted border-coral</td></tr>
+          <tr><td>Hover-card</td><td class="mono">bg-surface · rounded-xl · border-border · shadow-pop · w-80</td></tr>
+          <tr><td>Hover-card name</td><td class="mono">text-label · font-mono · text-coral-ink</td></tr>
+          <tr><td>Hover-card type badge</td><td class="mono">text-eyebrow · text-ink-3</td></tr>
+          <tr><td>Hover-card def</td><td class="mono">text-body 14/1.45 (serif)</td></tr>
+          <tr><td>Open button</td><td class="mono">bg-ink · text-bg · rounded-sm · text-label</td></tr>
+          <tr><td>Graph button</td><td class="mono">bg-surface-2 · border-border-soft · text-ink-2</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-h">Entity type → color mapping</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Entity type</th><th>Chip color</th><th>Used by</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">concept</td><td class="mono">coral</td><td>Concepts, ideas, abstractions.</td></tr>
+          <tr><td class="mono">pattern</td><td class="mono">coral-ink (darker)</td><td>Patterns, idioms.</td></tr>
+          <tr><td class="mono">feature</td><td class="mono">sage</td><td>Postgres features, system mechanisms.</td></tr>
+          <tr><td class="mono">file · function · type · component</td><td class="mono">butter-ink</td><td>Code entities.</td></tr>
+          <tr><td class="mono">library · paper · person</td><td class="mono">ink-2 (no chip tint)</td><td>External references — quieter.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 14 BUTTONS                                             -->
+  <!-- ===================================================== -->
+  <section class="spec" id="buttons">
+    <div class="head"><span class="n">14</span><span class="ti">Buttons, tabs &amp; pills</span></div>
+    <p class="intro">Three button variants. Tabs are pill-shaped segmented controls. Pills are the read-only metadata badges.</p>
+
+    <div class="card">
+      <div class="row">
+        <button class="btn btn-primary">Continue to §02 · Tuple versions <span>→</span></button>
+        <button class="btn btn-secondary">All 12 sources</button>
+        <button class="btn btn-ghost">Cancel</button>
+      </div>
+
+      <div style="margin-top: 22px; display: inline-flex; align-items: center; gap: 6px; background: var(--color-surface-2); padding: 4px; border-radius: var(--radius-pill); border: 1px solid var(--color-border-soft);">
+        <button class="btn" style="background: var(--color-ink); color: var(--color-bg); padding: 7px 14px; font-size: 12px;">Orientation</button>
+        <button class="btn btn-ghost" style="padding: 7px 14px; font-size: 12px;">Guided</button>
+        <button class="btn btn-ghost" style="padding: 7px 14px; font-size: 12px;">Reference</button>
+        <button class="btn btn-ghost" style="padding: 7px 14px; font-size: 12px;">Synthesis</button>
+        <button class="btn btn-ghost" style="padding: 7px 14px; font-size: 12px;">Graph</button>
+      </div>
+
+      <div style="margin-top: 22px;">
+        <span class="inline-tag">postgres-mvcc</span>
+        <span class="inline-tag">7 sections</span>
+        <span class="inline-tag">≈ 45 min</span>
+        <span class="inline-tag">28 entities</span>
+      </div>
+    </div>
+
+    <div class="sub-h">Variant table</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Variant</th><th>Background</th><th>Ink</th><th>Border</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">primary</td><td class="mono">bg-ink</td><td class="mono">text-bg</td><td class="mono">none</td><td>The one action the user is meant to take.</td></tr>
+          <tr><td class="mono">secondary</td><td class="mono">bg-surface</td><td class="mono">text-ink</td><td class="mono">border-border-soft</td><td>Alternative actions, "see all".</td></tr>
+          <tr><td class="mono">ghost</td><td class="mono">transparent</td><td class="mono">text-ink-2</td><td class="mono">none</td><td>Tertiary, in-line links, "cancel".</td></tr>
+          <tr><td class="mono">tab · active</td><td class="mono">bg-ink</td><td class="mono">text-bg</td><td class="mono">none</td><td>Inside a pill-track segmented control.</td></tr>
+          <tr><td class="mono">tab · inactive</td><td class="mono">transparent</td><td class="mono">text-ink-2</td><td class="mono">none</td><td>Hover → text-ink.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 15 DARK MODE                                           -->
+  <!-- ===================================================== -->
+  <section class="spec" id="dark">
+    <div class="head"><span class="n">15</span><span class="ti">Dark mode</span></div>
+    <p class="intro">Dark mode is a proposal; the light theme above is the default. The mechanism is a CSS-variable flip under <code class="t-mono">.dark</code> on <code class="t-mono">&lt;html&gt;</code>. Component classes never reference dark explicitly.</p>
+
+    <div class="card">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <!-- Light preview -->
+        <div style="background: #F4F2EC; color: #16201A; border-radius: var(--radius-2xl); padding: 22px;">
+          <div style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: rgba(22,32,26,0.44);">Light · default</div>
+          <div style="font-family: var(--font-serif); font-size: 22px; font-weight: 500; line-height: 1.2; margin-top: 8px;">Foundations</div>
+          <div style="font-family: var(--font-serif); font-size: 15px; line-height: 1.55; color: rgba(22,32,26,0.66); margin-top: 8px;">A database is a single, shared piece of state. <span style="font-family: var(--font-mono); font-size: 0.92em; color: oklch(45% 0.16 30); background: oklch(97% 0.025 30); padding: 1px 6px; border-radius: 4px; border-bottom: 1px dotted oklch(62% 0.16 30);">snapshot</span></div>
+          <div style="margin-top: 12px; background: oklch(96% 0.025 155); border-radius: var(--radius-lg); padding: 10px 12px; font-family: var(--font-serif); font-size: 14px;">Mental model · the snapshot decides what counts as visible.</div>
+        </div>
+
+        <!-- Dark preview (uses static values to render in light context) -->
+        <div style="background: oklch(18% 0.008 155); color: oklch(94% 0.012 85); border-radius: var(--radius-2xl); padding: 22px;">
+          <div style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: oklch(94% 0.012 85 / 0.48);">Dark · proposed</div>
+          <div style="font-family: var(--font-serif); font-size: 22px; font-weight: 500; line-height: 1.2; margin-top: 8px;">Foundations</div>
+          <div style="font-family: var(--font-serif); font-size: 15px; line-height: 1.55; color: oklch(94% 0.012 85 / 0.72); margin-top: 8px;">A database is a single, shared piece of state. <span style="font-family: var(--font-mono); font-size: 0.92em; color: oklch(82% 0.12 30); background: oklch(26% 0.04 30); padding: 1px 6px; border-radius: 4px; border-bottom: 1px dotted oklch(74% 0.14 30);">snapshot</span></div>
+          <div style="margin-top: 12px; background: oklch(26% 0.03 155); border-radius: var(--radius-lg); padding: 10px 12px; font-family: var(--font-serif); font-size: 14px;">Mental model · the snapshot decides what counts as visible.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-h">What stays the same · what flips</div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Token</th><th>Light</th><th>Dark</th><th>Strategy</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">--color-bg</td><td class="mono">#F4F2EC</td><td class="mono">oklch(18% 0.008 155)</td><td>Flip lightness, keep cool-green hue.</td></tr>
+          <tr><td class="mono">--color-ink</td><td class="mono">#16201A</td><td class="mono">oklch(94% 0.012 85)</td><td>Flip lightness; shift hue from cool to warm.</td></tr>
+          <tr><td class="mono">--color-accent-coral</td><td class="mono">oklch(62% 0.16 30)</td><td class="mono">oklch(74% 0.14 30)</td><td>Raise lightness, drop chroma a touch — keep recognizable as coral.</td></tr>
+          <tr><td class="mono">--color-accent-*-bg</td><td>97% lightness tint</td><td>~26% lightness tint</td><td>Same hue, opposite end of the lightness range.</td></tr>
+          <tr><td class="mono">font sizes, radii, shadows, spacing</td><td colspan="2">unchanged</td><td>Theme is color-only; structure is invariant.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top: 14px;">
+      <div class="t-body" style="margin: 0;">Because semantic tokens flip, a class like <code class="t-mono">bg-surface text-ink border-border-soft</code> renders correctly in either theme with zero <code class="t-mono">dark:</code> prefixes. The only place <code class="t-mono">dark:</code> remains in the codebase is for structurally different markup — e.g. swapping an SVG glyph that has baked-in light/dark fills.</div>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- 16 GOVERNANCE                                          -->
+  <!-- ===================================================== -->
+  <section class="spec" id="governance">
+    <div class="head"><span class="n">16</span><span class="ti">Governance &amp; change</span></div>
+    <p class="intro">How the design system evolves without drifting.</p>
+
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Change</th><th>Where it happens</th><th>Who approves</th></tr></thead>
+        <tbody>
+          <tr><td>Adjust a token value (e.g. shift coral hue)</td><td class="mono">design-tokens/*.css</td><td>Visual review against the example reports.</td></tr>
+          <tr><td>Add a new semantic role (e.g. <code class="t-mono">--color-accent-violet</code>)</td><td class="mono">design-tokens/ + tailwind.config</td><td>Hard threshold: must appear in ≥ 2 component recipes first.</td></tr>
+          <tr><td>Add a new type role</td><td class="mono">tailwind.config.fontSize</td><td>Same threshold. Display + h1–h3 + body + label is meant to cover everything.</td></tr>
+          <tr><td>New component variant</td><td class="mono">components/&lt;X&gt;.tsx · cva</td><td>Component owner; Storybook story required.</td></tr>
+          <tr><td>New block type</td><td class="mono">schemas/ + components/teaching/ + Storybook</td><td>Updates <code class="t-mono">BlockSchema</code> discriminated union; <code class="t-mono">teaching-order</code> skill updated in same PR.</td></tr>
+          <tr><td>Report-local custom component</td><td class="mono">reports/&lt;name&gt;/custom/</td><td>Must be entered in <code class="t-mono">customComponents</code> manifest with purpose + justification.</td></tr>
+          <tr><td>Raw Tailwind in an engine component</td><td class="mono">components/**/*.tsx</td><td>Allowed but reviewed by hand; never use disabled utilities.</td></tr>
+          <tr><td>Raw Tailwind in MDX prose</td><td class="mono">reports/&lt;name&gt;/prose/</td><td>Discouraged. If it happens repeatedly, it's a missing prose component.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-h">Validation hooks</div>
+    <div class="card">
+      <div class="t-body" style="margin: 0;">The build runs three checks beyond the Zod schemas:</div>
+      <ul style="font-family: var(--font-serif); font-size: 17px; line-height: 1.55; margin: 12px 0 0 0; padding: 0 0 0 20px;">
+        <li>Tailwind's <code class="t-mono">forbid-arbitrary-values</code> plugin scans every emitted class against the four locked categories.</li>
+        <li>A lightweight import scan in <code class="t-mono">reports/&lt;name&gt;/custom/</code> ensures only <code class="t-mono">@engine/*</code> and standard libraries are imported. <span class="muted">[V1.x — opt-in in V1.]</span></li>
+        <li>Storybook story coverage: every exported component must have at least one story; CI fails otherwise.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    Trellis design system · v0.1 · derived from the Modular Bento prototype · single source of truth lives in <span style="color: var(--color-ink-2);">packages/engine/design-tokens/</span>
+  </footer>
+
+</main>
+</div>
+</body>
+</html>

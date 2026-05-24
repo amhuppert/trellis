@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trellis · Component Library — Implementation Handoff</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+
+<style>
+  /* ============================================================
+     Tokens — mirrored from Trellis Design System v0.1.
+     Source of truth lives in packages/engine/design-tokens/.
+     The implementing agent should treat this file as a derived
+     view; the design-system spec wins on token values.
+     ============================================================ */
+  :root {
+    color-scheme: light;
+    --color-bg:        #F4F2EC;
+    --color-surface:   #FFFFFF;
+    --color-surface-2: #F9F7F1;
+    --color-surface-3: #ECE8DC;
+
+    --color-ink:    #16201A;
+    --color-ink-2:  rgba(22,32,26,0.66);
+    --color-ink-3:  rgba(22,32,26,0.44);
+    --color-ink-4:  rgba(22,32,26,0.28);
+
+    --color-border-soft: rgba(20,30,25,0.05);
+    --color-border:      rgba(20,30,25,0.10);
+    --color-border-hi:   rgba(20,30,25,0.18);
+
+    --color-accent-sage:      oklch(48% 0.07 155);
+    --color-accent-sage-ink:  oklch(35% 0.07 155);
+    --color-accent-sage-soft: oklch(92% 0.04 155);
+    --color-accent-sage-bg:   oklch(96% 0.025 155);
+
+    --color-accent-coral:      oklch(62% 0.16 30);
+    --color-accent-coral-ink:  oklch(45% 0.16 30);
+    --color-accent-coral-soft: oklch(94% 0.05 30);
+    --color-accent-coral-bg:   oklch(97% 0.025 30);
+
+    --color-accent-butter:     oklch(86% 0.10 90);
+    --color-accent-butter-ink: oklch(48% 0.10 80);
+    --color-accent-butter-bg:  oklch(96% 0.03 90);
+
+    --font-sans:  "Manrope", -apple-system, system-ui, sans-serif;
+    --font-serif: "Source Serif 4", "Newsreader", Georgia, serif;
+    --font-mono:  "JetBrains Mono", ui-monospace, monospace;
+
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-xl: 12px;
+    --radius-2xl: 14px;
+    --radius-3xl: 18px;
+    --radius-pill: 999px;
+
+    --shadow-sm:    0 1px 2px rgba(20,30,25,0.04), 0 6px 24px rgba(20,30,25,0.04);
+    --shadow-pop:   0 4px 12px rgba(20,30,25,0.06), 0 20px 60px rgba(20,30,25,0.08);
+
+    --motion-fast: 120ms;
+    --motion-med:  220ms;
+    --motion-slow: 360ms;
+    --ease-out:    cubic-bezier(.2,.7,.3,1);
+  }
+
+  /* ---------- Reset + chrome ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  a { color: inherit; }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 5px; border: 2px solid var(--color-bg); }
+
+  /* ---------- Page layout ---------- */
+  .page { display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; }
+  .nav { position: sticky; top: 0; align-self: start; height: 100vh; overflow: auto; border-right: 1px solid var(--color-border-soft); background: var(--color-surface); padding: 28px 22px; }
+  .nav-mark { display: flex; align-items: center; gap: 12px; margin-bottom: 26px; }
+  .nav-mark .glyph { width: 32px; height: 32px; border-radius: var(--radius-lg); background: var(--color-ink); display: grid; place-items: center; }
+  .nav-mark .glyph::after { content: ""; width: 12px; height: 12px; border-radius: 999px; background: var(--color-accent-coral); }
+  .nav-mark .wordmark { font-weight: 700; font-size: 14px; letter-spacing: -0.005em; }
+  .nav-mark .sub { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); margin-top: 1px; }
+  .nav-group { margin-top: 18px; }
+  .nav-eyebrow { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-ink-3); margin-bottom: 8px; }
+  .nav a { display: block; text-decoration: none; padding: 6px 10px; border-radius: var(--radius-md); font-size: 13px; color: var(--color-ink-2); transition: background var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out); }
+  .nav a:hover { background: var(--color-surface-2); color: var(--color-ink); }
+  .nav a .n { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); margin-right: 8px; }
+
+  .main { padding: 56px 64px 120px; max-width: 1180px; min-width: 0; }
+
+  /* ---------- Type roles ---------- */
+  .t-display { font-family: var(--font-serif); font-weight: 500; font-size: 56px; line-height: 1.02; letter-spacing: -0.025em; }
+  .t-h1      { font-family: var(--font-serif); font-weight: 500; font-size: 40px; line-height: 1.08; letter-spacing: -0.02em; }
+  .t-h2      { font-family: var(--font-serif); font-weight: 500; font-size: 28px; line-height: 1.2;  letter-spacing: -0.015em; }
+  .t-h3      { font-family: var(--font-serif); font-weight: 500; font-size: 22px; line-height: 1.25; letter-spacing: -0.005em; }
+  .t-lead    { font-family: var(--font-serif); font-weight: 400; font-size: 21px; line-height: 1.42; color: var(--color-ink-2); text-wrap: pretty; }
+  .t-body    { font-family: var(--font-serif); font-weight: 400; font-size: 18px; line-height: 1.62; text-wrap: pretty; }
+  .t-body-sans { font-family: var(--font-sans); font-weight: 400; font-size: 14px; line-height: 1.55; color: var(--color-ink-2); }
+  .t-label   { font-family: var(--font-sans); font-weight: 600; font-size: 13px; line-height: 1.3; }
+  .t-caption { font-family: var(--font-sans); font-weight: 400; font-size: 12px; line-height: 1.4; color: var(--color-ink-3); }
+  .t-eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-ink-3); }
+  .t-mono    { font-family: var(--font-mono); font-size: 12px; }
+  .t-code    { font-family: var(--font-mono); font-size: 13px; }
+
+  /* ---------- Hero / section scaffolding ---------- */
+  .hero { margin-bottom: 56px; }
+  .hero .crumbs { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+  .hero .crumbs .pill { background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-pill); padding: 5px 12px; font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-3); }
+  .hero h1 { font-family: var(--font-serif); font-weight: 500; font-size: 60px; line-height: 1.02; letter-spacing: -0.025em; margin: 0 0 16px; max-width: 820px; }
+  .hero .deck { font-family: var(--font-serif); font-size: 22px; line-height: 1.45; color: var(--color-ink-2); max-width: 720px; text-wrap: pretty; margin: 0; }
+  .hero-meta { margin-top: 32px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding-top: 20px; border-top: 1px solid var(--color-border-soft); }
+  .hero-meta .cell .k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink-3); }
+  .hero-meta .cell .v { font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: var(--color-ink); margin-top: 4px; }
+
+  section.spec { margin-bottom: 84px; scroll-margin-top: 24px; }
+  section.spec > .head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid var(--color-border-soft); }
+  section.spec > .head .n { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--color-accent-coral); letter-spacing: 0.05em; }
+  section.spec > .head .ti { font-family: var(--font-serif); font-weight: 500; font-size: 32px; line-height: 1.08; letter-spacing: -0.02em; }
+  section.spec > .intro { font-family: var(--font-serif); font-size: 18px; line-height: 1.55; color: var(--color-ink-2); max-width: 780px; text-wrap: pretty; margin: 0 0 28px; }
+  .sub-h { font-family: var(--font-sans); font-weight: 700; font-size: 13px; letter-spacing: 0.02em; color: var(--color-ink); margin: 30px 0 12px; }
+
+  /* ---------- Component card — the repeating unit ---------- */
+  .comp { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 28px; }
+  .comp .head-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .comp .name { font-family: var(--font-serif); font-size: 26px; font-weight: 500; line-height: 1.1; letter-spacing: -0.015em; color: var(--color-ink); }
+  .comp .role { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--color-accent-sage-ink); background: var(--color-accent-sage-bg); padding: 3px 9px; border-radius: var(--radius-sm); border: 1px solid var(--color-accent-sage-soft); letter-spacing: 0.04em; }
+  .comp .role.coral { color: var(--color-accent-coral-ink); background: var(--color-accent-coral-bg); border-color: var(--color-accent-coral-soft); }
+  .comp .role.butter { color: var(--color-accent-butter-ink); background: var(--color-accent-butter-bg); border-color: rgba(20,30,25,0.05); }
+  .comp .role.ink { color: var(--color-bg); background: var(--color-ink); border-color: var(--color-ink); }
+  .comp .src { font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-3); margin-left: auto; }
+  .comp .blurb { font-family: var(--font-serif); font-size: 17px; line-height: 1.5; color: var(--color-ink-2); margin: 0; max-width: 760px; text-wrap: pretty; }
+
+  .preview-frame { background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-2xl); padding: 26px; }
+  .preview-frame.bg { background: var(--color-bg); }
+  .preview-frame.tight { padding: 16px; }
+  .preview-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink-3); margin-bottom: 12px; font-weight: 700; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid-spec { display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 1080px) { .grid-spec { grid-template-columns: 1fr; } }
+
+  /* ---------- Table ---------- */
+  .tbl { border: 1px solid var(--color-border-soft); border-radius: var(--radius-xl); background: var(--color-surface); overflow: hidden; width: 100%; font-family: var(--font-sans); }
+  .tbl table { border-collapse: collapse; width: 100%; }
+  .tbl th, .tbl td { text-align: left; padding: 11px 14px; border-top: 1px solid var(--color-border-soft); font-size: 13px; vertical-align: top; }
+  .tbl thead th { border-top: none; background: var(--color-surface-2); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink-3); }
+  .tbl td.mono, .tbl th.mono { font-family: var(--font-mono); font-size: 12px; }
+  .tbl td.tw { font-family: var(--font-mono); font-size: 12px; color: var(--color-accent-sage-ink); }
+  .tbl td.k { font-family: var(--font-mono); font-size: 12px; color: var(--color-ink); font-weight: 600; }
+
+  /* ---------- Code ---------- */
+  .code { background: var(--color-ink); color: #E9E4D7; border-radius: var(--radius-xl); padding: 16px 20px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; overflow-x: auto; white-space: pre; }
+  .code .kw { color: oklch(80% 0.10 30); }
+  .code .st { color: oklch(80% 0.10 90); }
+  .code .cm { color: rgba(233,228,215,0.45); font-style: italic; }
+  .code .pr { color: oklch(80% 0.10 155); }
+  .code .nm { color: #E9E4D7; }
+  code.inline { font-family: var(--font-mono); font-size: 12px; background: var(--color-surface-3); padding: 1px 6px; border-radius: 4px; color: var(--color-ink); }
+
+  /* ---------- Cards ---------- */
+  .card { background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-3xl); padding: 20px 22px; }
+
+  /* ---------- Eyebrow util ---------- */
+  .ey { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-ink-3); }
+  .ey.coral { color: var(--color-accent-coral); }
+  .ey.sage  { color: var(--color-accent-sage-ink); }
+  .ey.butter{ color: var(--color-accent-butter-ink); }
+
+  /* ---------- Interaction-spec list ---------- */
+  .interactions { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .interactions li { display: grid; grid-template-columns: 120px 1fr; gap: 14px; padding: 9px 12px; background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-lg); font-family: var(--font-sans); font-size: 13px; line-height: 1.45; align-items: start; }
+  .interactions li .trig { font-family: var(--font-mono); font-size: 11px; color: var(--color-accent-coral-ink); font-weight: 600; padding-top: 1px; }
+  .interactions li .eff  { color: var(--color-ink); text-wrap: pretty; }
+  .interactions li .eff em { font-style: italic; color: var(--color-ink-2); }
+
+  /* ---------- EntityRef (inline) ---------- */
+  .e-ref { font-family: var(--font-mono); font-size: 0.92em; color: var(--color-accent-coral-ink); background: var(--color-accent-coral-bg); padding: 1px 6px; border-radius: var(--radius-xs); border-bottom: 1px dotted var(--color-accent-coral); font-weight: 500; white-space: nowrap; cursor: pointer; }
+
+  /* ---------- Block previews (copied from prototype, simplified) ---------- */
+  .blk { border-radius: var(--radius-2xl); border: 1px solid var(--color-border-soft); padding: 22px 24px; background: var(--color-surface); }
+  .blk-concept { border-left: 4px solid var(--color-accent-coral); }
+  .blk-mental  { background: var(--color-accent-sage-bg); }
+  .blk-misc    { background: var(--color-accent-coral-bg); }
+  .blk-misc .claim { font-family: var(--font-serif); font-size: 19px; font-style: italic; line-height: 1.3; margin-top: 10px; color: var(--color-ink); text-wrap: pretty; }
+  .blk-misc .truth { margin-top: 12px; padding: 12px 14px; background: var(--color-surface); border-radius: var(--radius-lg); border-left: 3px solid var(--color-accent-coral); font-family: var(--font-serif); font-size: 16px; line-height: 1.5; color: var(--color-ink); }
+  .blk-takeaways { background: var(--color-ink); color: var(--color-bg); border-radius: var(--radius-2xl); padding: 22px 24px; }
+  .blk-takeaways ul { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 10px; }
+  .blk-takeaways li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; font-family: var(--font-serif); font-size: 17px; line-height: 1.45; text-wrap: pretty; }
+  .blk-takeaways li::before { content: "—"; color: var(--color-accent-coral); font-family: var(--font-mono); font-weight: 700; }
+  .blk-callout { border-radius: var(--radius-2xl); padding: 16px 20px; display: grid; grid-template-columns: 28px 1fr; gap: 14px; border: 1px solid var(--color-border-soft); }
+  .blk-callout.info  { background: var(--color-accent-sage-bg); }
+  .blk-callout.warn  { background: var(--color-accent-coral-bg); }
+  .blk-callout.aside { background: var(--color-accent-butter-bg); }
+  .blk-callout .glyph { width: 24px; height: 24px; border-radius: 999px; color: var(--color-bg); display: grid; place-items: center; font-family: var(--font-serif); font-weight: 700; font-size: 14px; }
+  .blk-callout.info  .glyph { background: var(--color-accent-sage); }
+  .blk-callout.warn  .glyph { background: var(--color-accent-coral); }
+  .blk-callout.aside .glyph { background: var(--color-accent-butter-ink); }
+  .blk-callout .ti { font-family: var(--font-sans); font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .blk-callout.info .ti { color: var(--color-accent-sage-ink); }
+  .blk-callout.warn .ti { color: var(--color-accent-coral); }
+  .blk-callout.aside .ti { color: var(--color-accent-butter-ink); }
+  .blk-callout .bd { font-family: var(--font-serif); font-size: 16px; line-height: 1.5; color: var(--color-ink); text-wrap: pretty; }
+
+  /* ---------- Buttons ---------- */
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: var(--radius-pill); cursor: pointer; font-family: var(--font-sans); font-size: 13px; font-weight: 700; border: 1px solid transparent; transition: transform var(--motion-fast) var(--ease-out), background var(--motion-fast) var(--ease-out); }
+  .btn-primary   { background: var(--color-ink); color: var(--color-bg); }
+  .btn-secondary { background: var(--color-surface); color: var(--color-ink); border-color: var(--color-border-soft); }
+  .btn-ghost     { background: transparent; color: var(--color-ink-2); }
+
+  /* ---------- Inline tag / pill ---------- */
+  .inline-tag { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: var(--radius-sm); background: var(--color-surface-3); font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-2); }
+
+  /* ---------- Misc helpers ---------- */
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .stack { display: grid; gap: 10px; }
+  .muted { color: var(--color-ink-3); }
+  .key-grid { display: grid; gap: 4px; }
+  .key-grid .kg-row { display: grid; grid-template-columns: 200px 1fr; gap: 14px; padding: 8px 0; border-top: 1px dashed var(--color-border-soft); font-size: 13px; align-items: baseline; }
+  .key-grid .kg-row:first-child { border-top: none; padding-top: 0; }
+  .key-grid .kg-row .k { font-family: var(--font-mono); font-size: 12px; color: var(--color-accent-sage-ink); }
+  .key-grid .kg-row .v { color: var(--color-ink); }
+
+  /* ---------- TopBar preview ---------- */
+  .topbar-demo { background: var(--color-bg); border: 1px solid var(--color-border-soft); border-radius: var(--radius-xl); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+  .topbar-demo .left { display: flex; align-items: center; gap: 12px; }
+  .topbar-demo .left .glyph { width: 32px; height: 32px; border-radius: var(--radius-lg); background: var(--color-ink); display: grid; place-items: center; }
+  .topbar-demo .left .glyph::after { content: ""; width: 12px; height: 12px; border-radius: 999px; background: var(--color-accent-coral); }
+  .topbar-demo .left .wm { font-weight: 700; font-size: 13px; line-height: 1.1; }
+  .topbar-demo .left .sb { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); margin-top: 1px; }
+  .modes-track { display: inline-flex; align-items: center; gap: 4px; background: var(--color-surface); padding: 4px; border-radius: var(--radius-pill); border: 1px solid var(--color-border-soft); }
+  .modes-track .seg { padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 999px; color: var(--color-ink-2); cursor: pointer; }
+  .modes-track .seg.active { background: var(--color-ink); color: var(--color-bg); }
+  .search-chip { background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: 999px; padding: 6px 12px; font-size: 12px; color: var(--color-ink-2); display: inline-flex; align-items: center; gap: 8px; }
+  .search-chip .kbd { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); }
+
+  /* ---------- NavPanel preview ---------- */
+  .nav-demo { background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-xl); width: 100%; max-width: 320px; padding: 0; overflow: hidden; font-family: var(--font-sans); }
+  .nav-demo .tabs { display: flex; padding: 10px 12px 0; gap: 4px; border-bottom: 1px solid var(--color-border-soft); }
+  .nav-demo .tab { background: transparent; border: none; padding: 10px 4px 11px; cursor: pointer; border-bottom: 2px solid transparent; font-size: 13px; font-weight: 500; color: var(--color-ink-3); display: flex; align-items: center; gap: 6px; }
+  .nav-demo .tab.active { color: var(--color-ink); font-weight: 700; border-bottom-color: var(--color-accent-sage); }
+  .nav-demo .tab .ct { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-4); font-weight: 600; }
+  .nav-demo .tab.active .ct { color: var(--color-accent-sage); }
+  .nav-demo .rep-head { padding: 14px 18px 12px; border-bottom: 1px solid var(--color-border-soft); }
+  .nav-demo .rep-title { font-family: var(--font-serif); font-size: 16px; font-weight: 500; line-height: 1.2; letter-spacing: -0.005em; }
+  .nav-demo .rep-meta { font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); margin-top: 8px; }
+  .nav-demo .tree { padding: 8px 6px; }
+  .nav-demo .row-sec { display: flex; align-items: center; padding: 7px 8px; border-radius: var(--radius-md); cursor: pointer; gap: 10px; }
+  .nav-demo .row-sec.active { background: var(--color-accent-sage-bg); }
+  .nav-demo .row-sec .ch { color: var(--color-ink-3); transition: transform 150ms; display: inline-block; }
+  .nav-demo .row-sec.expanded .ch { transform: rotate(90deg); }
+  .nav-demo .row-sec .n { font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--color-ink-3); }
+  .nav-demo .row-sec.active .n { color: var(--color-accent-sage); }
+  .nav-demo .row-sec .t { font-size: 13.5px; line-height: 1.25; color: var(--color-ink); font-weight: 500; }
+  .nav-demo .row-sec.active .t { color: var(--color-accent-sage); font-weight: 700; }
+  .nav-demo .row-sub { display: flex; align-items: flex-start; gap: 10px; padding: 5px 8px 5px 32px; cursor: pointer; border-radius: var(--radius-sm); position: relative; }
+  .nav-demo .row-sub.current { background: var(--color-accent-sage-bg); }
+  .nav-demo .row-sub.current::before { content: ""; position: absolute; left: 20px; top: 0; bottom: 0; width: 2px; background: var(--color-accent-sage); border-radius: 2px; }
+  .nav-demo .row-sub .dot { width: 4px; height: 4px; border-radius: 4px; background: var(--color-ink-4); margin-top: 8px; flex-shrink: 0; }
+  .nav-demo .row-sub.current .dot { background: var(--color-accent-sage); }
+  .nav-demo .row-sub .t { font-size: 12.5px; line-height: 1.35; color: var(--color-ink-3); }
+  .nav-demo .row-sub.current .t { color: var(--color-accent-sage); font-weight: 600; }
+  .nav-demo .jumps { border-top: 1px solid var(--color-border-soft); padding: 10px 8px; display: grid; gap: 2px; }
+  .nav-demo .jump { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-radius: var(--radius-md); cursor: pointer; }
+  .nav-demo .jump.active { background: var(--color-accent-sage-bg); }
+  .nav-demo .jump .lab { font-size: 13px; font-weight: 600; color: var(--color-ink); }
+  .nav-demo .jump.active .lab { color: var(--color-accent-sage); font-weight: 700; }
+  .nav-demo .jump .hint { font-size: 11px; color: var(--color-ink-3); margin-top: 1px; }
+  .nav-demo .jump .arr { color: var(--color-ink-4); font-size: 13px; }
+  .nav-demo .jump.active .arr { color: var(--color-accent-sage); }
+
+  /* ---------- Step-by-step preview ---------- */
+  .blk-step { background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-2xl); padding: 22px 24px; }
+  .blk-step ol { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 14px; }
+  .blk-step li { display: grid; grid-template-columns: 32px 1fr; gap: 14px; align-items: flex-start; }
+  .blk-step li .num { width: 28px; height: 28px; border-radius: var(--radius-lg); background: var(--color-surface-3); font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--color-accent-coral-ink); display: grid; place-items: center; }
+  .blk-step li .stt { font-family: var(--font-sans); font-size: 14px; font-weight: 700; color: var(--color-ink); margin-bottom: 4px; }
+  .blk-step li .sbd { font-family: var(--font-serif); font-size: 16px; line-height: 1.5; color: var(--color-ink-2); text-wrap: pretty; }
+
+  /* ---------- "Before continue" preview ---------- */
+  .blk-bc { background: var(--color-accent-butter-bg); border: 1px solid var(--color-border-soft); border-radius: var(--radius-2xl); padding: 20px 22px; }
+
+  /* ---------- Hover-card preview ---------- */
+  .hover-card { width: 320px; background: var(--color-surface); border-radius: var(--radius-xl); border: 1px solid var(--color-border); box-shadow: var(--shadow-pop); padding: 14px 16px; font-family: var(--font-sans); }
+  .hover-card .hc-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .hover-card .nm  { font-family: var(--font-mono); font-size: 13px; color: var(--color-accent-coral-ink); font-weight: 600; }
+  .hover-card .tp  { font-family: var(--font-mono); font-size: 9px; color: var(--color-ink-3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .hover-card .def { font-family: var(--font-serif); font-size: 14px; line-height: 1.45; color: var(--color-ink); text-wrap: pretty; }
+  .hover-card .foot { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-border-soft); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .hover-card .foot .src { font-size: 11px; color: var(--color-ink-3); }
+  .hover-card .foot button { background: var(--color-ink); color: var(--color-bg); border: none; border-radius: var(--radius-sm); padding: 4px 10px; font-family: var(--font-sans); font-size: 11px; font-weight: 700; cursor: pointer; }
+  .hover-card .foot button.ghost { background: var(--color-surface-2); color: var(--color-ink-2); border: 1px solid var(--color-border-soft); }
+
+  /* ---------- Footer ---------- */
+  footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--color-border-soft); font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-3); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 980px) {
+    .page { grid-template-columns: 1fr; }
+    .nav { position: static; height: auto; }
+    .main { padding: 28px 22px 80px; }
+    .hero h1 { font-size: 40px; }
+    .hero .deck { font-size: 17px; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .hero-meta { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ============= NAV ============= -->
+<nav class="nav" aria-label="Component sections">
+  <div class="nav-mark">
+    <div class="glyph" aria-hidden="true"></div>
+    <div>
+      <div class="wordmark">Trellis · Components</div>
+      <div class="sub">handoff · v0.1</div>
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Read first</div>
+    <a href="#about"><span class="n">00</span>About this doc</a>
+    <a href="#stack"><span class="n">01</span>Stack &amp; conventions</a>
+    <a href="#tokens"><span class="n">02</span>Tokens · recap</a>
+    <a href="#data"><span class="n">03</span>Data model</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Layout &amp; chrome</div>
+    <a href="#app-shell"><span class="n">04</span>AppShell</a>
+    <a href="#topbar"><span class="n">05</span>TopBar</a>
+    <a href="#navpanel"><span class="n">06</span>NavPanel</a>
+    <a href="#rightrail"><span class="n">07</span>RightRail</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Primitives</div>
+    <a href="#card"><span class="n">08</span>Card</a>
+    <a href="#eyebrow"><span class="n">09</span>Eyebrow, Dot, Tag</a>
+    <a href="#buttons"><span class="n">10</span>Buttons &amp; Tabs</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Inline prose</div>
+    <a href="#inline-prose"><span class="n">11</span>InlineProse</a>
+    <a href="#entity-ref"><span class="n">12</span>EntityRef + HoverCard</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Teaching blocks</div>
+    <a href="#concept-intro"><span class="n">13</span>ConceptIntro</a>
+    <a href="#mental-model"><span class="n">14</span>MentalModel</a>
+    <a href="#callout"><span class="n">15</span>Callout</a>
+    <a href="#step-by-step"><span class="n">16</span>StepByStep</a>
+    <a href="#key-takeaways"><span class="n">17</span>KeyTakeaways</a>
+    <a href="#misconception"><span class="n">18</span>CommonMisconception</a>
+    <a href="#before-continue"><span class="n">19</span>BeforeYouContinue</a>
+    <a href="#prose-heading"><span class="n">20</span>Prose &amp; BlockHeading</a>
+    <a href="#pagination"><span class="n">21</span>SectionPagination</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Orientation tiles</div>
+    <a href="#orient-tiles"><span class="n">22</span>Bento composition</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Synthesis</div>
+    <a href="#synth-view"><span class="n">23</span>SynthesisView</a>
+    <a href="#synth-bits"><span class="n">24</span>Breadcrumbs, Pager, RefList</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Reference</div>
+    <a href="#ref-view"><span class="n">25</span>ReferenceView</a>
+    <a href="#entity-detail"><span class="n">26</span>EntityDetailPanel</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Knowledge graph</div>
+    <a href="#graph-view"><span class="n">27</span>GraphView</a>
+    <a href="#mini-graph"><span class="n">28</span>MiniGraph</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-eyebrow">Wrap-up</div>
+    <a href="#a11y"><span class="n">29</span>Accessibility</a>
+    <a href="#impl"><span class="n">30</span>Build order</a>
+  </div>
+</nav>
+
+<!-- ============= MAIN ============= -->
+<main class="main">
+
+  <!-- HERO -->
+  <header class="hero" id="about">
+    <div class="crumbs">
+      <span class="pill">packages/engine/components</span>
+      <span class="pill">handoff · v0.1</span>
+      <span class="pill">paired with: Trellis Design System.html · spec/REQUIREMENTS.md · spec/DESIGN.md</span>
+    </div>
+    <h1>Every shared component, every interaction, every token it touches.</h1>
+    <p class="deck">A single document for the implementing agent. Each card below shows what the component looks like, the exact tokens that compose it, the props that vary it, and every interaction it must respond to. Where a behaviour already lives in the prototype, the source path is named.</p>
+
+    <div class="hero-meta">
+      <div class="cell"><div class="k">Source prototype</div><div class="v">Modular Bento (<code class="inline">bento/</code>)</div></div>
+      <div class="cell"><div class="k">Target stack</div><div class="v">Astro · React · Tailwind</div></div>
+      <div class="cell"><div class="k">Components catalogued</div><div class="v">28 shared + 5 view shells</div></div>
+      <div class="cell"><div class="k">Companion specs</div><div class="v">REQUIREMENTS.md · DESIGN.md</div></div>
+    </div>
+  </header>
+
+  <!-- =====================================================
+       01 · STACK & CONVENTIONS
+       ===================================================== -->
+  <section class="spec" id="stack">
+    <div class="head"><span class="n">01</span><span class="ti">Stack &amp; conventions</span></div>
+    <p class="intro">Read this before writing a single component. These rules are why the prototype shipped consistent and why the production library should too.</p>
+
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Convention</th><th>Rule</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Language</td><td>TypeScript everywhere. Function components, named exports, typed props. No defaultProps.</td></tr>
+          <tr><td class="k">Styling</td><td>Tailwind utility classes composed via <code class="inline">cn()</code> (clsx + tailwind-merge). Use <code class="inline">cva()</code> for any component with more than one shape. Inline style maps from the prototype must be ported to utility classes — they exist because the prototype is JSX-in-CDN, not because they're correct for production.</td></tr>
+          <tr><td class="k">Tokens</td><td>Reach for tokens via Tailwind classes (<code class="inline">bg-surface</code>, <code class="inline">text-coral-ink</code>) or CSS variables (<code class="inline">var(--color-ink)</code>) for inline SVG fills. <strong>Never</strong> a raw hex.</td></tr>
+          <tr><td class="k">Accessibility</td><td>Radix UI primitives for hover-card, tabs, dialog, dropdown, tooltip. Wrap with Trellis styling; do not hand-roll behaviour the primitive already provides.</td></tr>
+          <tr><td class="k">No dark: variants for color</td><td>Semantic tokens flip under <code class="inline">.dark</code>. Only use <code class="inline">dark:</code> for structurally different markup (rare).</td></tr>
+          <tr><td class="k">Component context</td><td>No engine component reads report-specific state directly. Anything report-shaped flows through providers wired by <code class="inline">PageShell</code>.</td></tr>
+          <tr><td class="k">Storybook</td><td>Every exported component needs a Storybook story exercising each variant. CI fails without one.</td></tr>
+          <tr><td class="k">Prototype-to-prod map</td><td>Each card below names the prototype file the behaviour came from. Use the prototype as the source of truth for <em>behaviour</em>; use this doc + the design-system spec as the source of truth for <em>structure</em>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       02 · TOKENS RECAP
+       ===================================================== -->
+  <section class="spec" id="tokens">
+    <div class="head"><span class="n">02</span><span class="ti">Tokens · recap</span></div>
+    <p class="intro">The full token manifest lives in <code class="inline">Trellis Design System.html</code> and ships from <code class="inline">packages/engine/design-tokens/</code>. The values referenced below are the same ones every component card in this document expects.</p>
+
+    <div class="key-grid">
+      <div class="kg-row"><div class="k">Surface stack</div><div class="v">bg → surface → surface-2 → surface-3 (linen → white → soft → warm)</div></div>
+      <div class="kg-row"><div class="k">Ink stack</div><div class="v">ink → ink-2 (66%) → ink-3 (44%) → ink-4 (28%)</div></div>
+      <div class="kg-row"><div class="k">Borders</div><div class="v">border-soft (5%) · border (10%) · border-hi (18%) — never invent a fourth.</div></div>
+      <div class="kg-row"><div class="k">Accent · sage</div><div class="v">information, mechanism, active state.</div></div>
+      <div class="kg-row"><div class="k">Accent · coral</div><div class="v">concept, entity, next-action, primary highlight.</div></div>
+      <div class="kg-row"><div class="k">Accent · butter</div><div class="v">caution, maintenance, aside, "before you continue".</div></div>
+      <div class="kg-row"><div class="k">Type families</div><div class="v">serif (Source Serif 4 — reading) · sans (Manrope — chrome) · mono (JetBrains Mono — data).</div></div>
+      <div class="kg-row"><div class="k">Type roles</div><div class="v">display, h1, h2, h3, lead, body, body-sans, label, caption, eyebrow, mono, code. Size + weight + leading + tracking ship together.</div></div>
+      <div class="kg-row"><div class="k">Radii</div><div class="v">xs (4) · sm (6) · md (8) · lg (10) · xl (12) · 2xl (14) · 3xl (18) · pill.</div></div>
+      <div class="kg-row"><div class="k">Shadows</div><div class="v">Only two: shadow-sm (sticky) · shadow-pop (floating). No md/lg/xl.</div></div>
+      <div class="kg-row"><div class="k">Motion</div><div class="v">fast 120ms · med 220ms · slow 360ms · single ease-out curve <code class="inline">cubic-bezier(.2,.7,.3,1)</code>.</div></div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       03 · DATA MODEL
+       ===================================================== -->
+  <section class="spec" id="data">
+    <div class="head"><span class="n">03</span><span class="ti">Data model — the shapes every component reads</span></div>
+    <p class="intro">Components are mostly pure renderers of these shapes. Schemas live in <code class="inline">packages/engine/schemas/</code> (Zod). The prototype's <code class="inline">window.B</code> object in <code class="inline">bento/content.js</code> is a runtime fixture of the same shapes — use it as the example payload when wiring stories.</p>
+
+    <div class="code"><span class="cm">// Top-level — the manifest the agent fills out per report.</span>
+<span class="kw">type</span> <span class="pr">ReportConfig</span> = {
+  id: <span class="pr">string</span>; title: <span class="pr">string</span>; subtitle?: <span class="pr">string</span>;
+  template: <span class="st">"tutorial"</span> | <span class="st">"codebase"</span> | <span class="st">"feature"</span> | <span class="st">"comparison"</span> | <span class="st">"custom"</span>;
+  orientation: <span class="pr">Orientation</span>;
+  sections: <span class="pr">Section</span>[];
+  synthesis?: <span class="pr">SynthesisRoot</span>;
+  kg?: { entities: <span class="pr">Entity</span>[]; relationships: <span class="pr">Relationship</span>[] };
+  sources: <span class="pr">SourceReference</span>[];
+};
+
+<span class="kw">type</span> <span class="pr">Section</span> = {
+  id: <span class="pr">string</span>; n: <span class="pr">string</span>; title: <span class="pr">string</span>; kind: <span class="pr">SectionKind</span>;
+  summary?: <span class="pr">string</span>; blurb?: <span class="pr">string</span>; time?: <span class="pr">string</span>;
+  blocks: <span class="pr">Block</span>[];
+  children: <span class="pr">SectionChild</span>[];      <span class="cm">// outline-only — each block can declare anchorId to map back</span>
+  relatedEntities: <span class="pr">string</span>[];
+  relatedSectionIds?: <span class="pr">string</span>[];
+  sourceRefIds?: <span class="pr">string</span>[];
+};
+
+<span class="kw">type</span> <span class="pr">SectionKind</span> = <span class="st">"Concept"</span> | <span class="st">"Mechanism"</span> | <span class="st">"Maintenance"</span> | <span class="st">"Contract"</span> | <span class="st">"Advanced"</span>;
+<span class="cm">// SectionKind drives the kind-color (sage / coral / butter) used in the nav, the
+// recommended-path tile, and the Regions graph layout. See KIND_COLOR in components.jsx.</span>
+
+<span class="kw">type</span> <span class="pr">Block</span> =
+  | { kind: <span class="st">"conceptIntro"</span>;  title: <span class="pr">string</span>; body: <span class="pr">string</span>; anchorId?: <span class="pr">string</span> }
+  | { kind: <span class="st">"mentalModel"</span>;   title: <span class="pr">string</span>; body: <span class="pr">string</span>; aside?: <span class="pr">string</span>; anchorId?: <span class="pr">string</span> }
+  | { kind: <span class="st">"callout"</span>;       tone: <span class="st">"info"</span> | <span class="st">"warn"</span> | <span class="st">"aside"</span>; title: <span class="pr">string</span>; body: <span class="pr">string</span>; anchorId?: <span class="pr">string</span> }
+  | { kind: <span class="st">"stepByStep"</span>;    title: <span class="pr">string</span>; steps: { t: <span class="pr">string</span>; b: <span class="pr">string</span> }[]; anchorId?: <span class="pr">string</span> }
+  | { kind: <span class="st">"keyTakeaways"</span>;  items: <span class="pr">string</span>[]; anchorId?: <span class="pr">string</span> }
+  | { kind: <span class="st">"misconception"</span>; claim: <span class="pr">string</span>; truth: <span class="pr">string</span>; anchorId?: <span class="pr">string</span> }
+  | { kind: <span class="st">"beforeContinue"</span>;body: <span class="pr">string</span>; next: <span class="pr">string</span>; anchorId?: <span class="pr">string</span> }
+  | { kind: <span class="st">"heading"</span>;       level: 2 | 3; text: <span class="pr">string</span>; anchorId?: <span class="pr">string</span> }
+  | { kind: <span class="st">"prose"</span>;         body: <span class="pr">string</span>; anchorId?: <span class="pr">string</span> };
+
+<span class="cm">// Prose strings ARE NOT MARKDOWN. They are minimal HTML-ish:
+//   • &lt;e id="snapshot"&gt;snapshot&lt;/e&gt;   — entity reference (renders EntityRef)
+//   • &lt;em&gt;...&lt;/em&gt;                  — italic emphasis
+//   • &lt;code&gt;...&lt;/code&gt;              — inline code chip
+// InlineProse is the renderer. See bento/components.jsx.</span>
+
+<span class="kw">type</span> <span class="pr">Entity</span> = {
+  id: <span class="pr">string</span>; name: <span class="pr">string</span>; aliases?: <span class="pr">string</span>[];
+  type: <span class="st">"concept"</span> | <span class="st">"pattern"</span> | <span class="st">"feature"</span> | <span class="st">"file"</span>
+      | <span class="st">"function"</span> | <span class="st">"type"</span> | <span class="st">"component"</span>
+      | <span class="st">"library"</span> | <span class="st">"paper"</span> | <span class="st">"person"</span> | <span class="st">"module"</span>
+      | <span class="st">"api"</span> | <span class="st">"workflow"</span> | <span class="st">"other"</span>;
+  shortDef: <span class="pr">string</span>;          <span class="cm">// 1–2 sentences for hover card</span>
+  description?: <span class="pr">string</span>;
+  primarySection?: <span class="pr">string</span>;    <span class="cm">// where the "Open" button jumps to</span>
+};
+
+<span class="kw">type</span> <span class="pr">Relationship</span> = {
+  id: <span class="pr">string</span>; from: <span class="pr">string</span>; to: <span class="pr">string</span>;
+  type: <span class="pr">string</span>;              <span class="cm">// free-form (e.g. "depends-on", "calls", "contradicts")</span>
+  label?: <span class="pr">string</span>;
+  strength?: <span class="st">"weak"</span> | <span class="st">"medium"</span> | <span class="st">"strong"</span>;
+};
+
+<span class="kw">type</span> <span class="pr">SynthesisNode</span> = {
+  id: <span class="pr">string</span>; level: <span class="pr">number</span>; title: <span class="pr">string</span>; summary: <span class="pr">string</span>;
+  commonStructure?: <span class="pr">string</span>;   <span class="cm">// "What the children share"</span>
+  contrast?: <span class="pr">string</span>;          <span class="cm">// "Where they differ"</span>
+  keyTakeaways?: <span class="pr">string</span>[];
+  openQuestions?: <span class="pr">string</span>[];
+  references?: <span class="pr">Reference</span>[];   <span class="cm">// back to sections / entities / sources</span>
+  children: <span class="pr">SynthesisNode</span>[];
+};
+</div>
+  </section>
+
+  <!-- =====================================================
+       04 · APP SHELL
+       ===================================================== -->
+  <section class="spec" id="app-shell">
+    <div class="head"><span class="n">04</span><span class="ti">AppShell — top-level state, persistence, routing</span></div>
+    <p class="intro">The reader's entire experience hangs off one shell. The shell owns five pieces of cross-view state, persists three of them to localStorage, exposes section/entity/synthesis/graph navigation helpers, and runs the global keyboard shortcuts. Every other component is a leaf of the shell.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">AppShell</div>
+            <div class="role ink">root</div>
+            <div class="src">bento/app.jsx</div>
+          </div>
+          <p class="blurb">Composes <code class="inline">TopBar</code>, <code class="inline">NavPanel</code>, and whichever view is active. Holds the cross-cutting state every view reads.</p>
+        </div>
+
+        <div class="sub-h">State owned by the shell</div>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Key</th><th>Type</th><th>Description</th><th>Persisted</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">mode</td><td class="mono">"orient" | "guided" | "reference" | "synthesis" | "graph"</td><td>The active view. Drives which view shell renders below the chrome.</td><td>yes</td></tr>
+              <tr><td class="mono">sectionId</td><td class="mono">string</td><td>Currently open section (drives Guided view + NavPanel auto-expansion).</td><td>yes</td></tr>
+              <tr><td class="mono">graphMode</td><td class="mono">"atlas" | "spotlight" | "regions"</td><td>Layout mode for the GraphView.</td><td>yes</td></tr>
+              <tr><td class="mono">scrollTarget</td><td class="mono">string | null</td><td>Anchor id GuidedView should smooth-scroll to next render. Cleared on consume.</td><td>no</td></tr>
+              <tr><td class="mono">currentSubId</td><td class="mono">string | null</td><td>Anchor most visible inside the reading column — reported up from GuidedView's IntersectionObserver, used by NavPanel to highlight the right leaf.</td><td>no</td></tr>
+              <tr><td class="mono">focusEntity</td><td class="mono">string | null</td><td>Entity highlighted in ReferenceView's detail pane.</td><td>no</td></tr>
+              <tr><td class="mono">synFocus</td><td class="mono">string | null</td><td>SynthesisNode in focus.</td><td>no</td></tr>
+              <tr><td class="mono">graphFocus</td><td class="mono">string | null</td><td>Entity highlighted in GraphView.</td><td>no</td></tr>
+              <tr><td class="mono">navTick</td><td class="mono">number</td><td>Bumped when a user re-clicks the same (sectionId, scrollTarget) so GuidedView's scroll effect re-fires. The shell composes <code class="inline">scrollTarget + "#" + navTick</code> into the value GuidedView observes.</td><td>no</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="sub-h">Navigation helpers (passed down as props)</div>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Helper</th><th>Signature</th><th>Behaviour</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">openSection</td><td class="mono">(id, anchorId?) =&gt; void</td><td>Switch to guided mode at section <code class="inline">id</code>. If <code class="inline">anchorId</code> matches the current target, bumps navTick so the scroll fires anyway.</td></tr>
+              <tr><td class="mono">openEntity</td><td class="mono">(id) =&gt; void</td><td>Switch to reference mode with that entity focused in the detail pane.</td></tr>
+              <tr><td class="mono">openSynthesis</td><td class="mono">(id?) =&gt; void</td><td>Switch to synthesis mode. Without an id, the root focuses.</td></tr>
+              <tr><td class="mono">openGraph</td><td class="mono">(entityId?, requestedMode?) =&gt; void</td><td>Switch to graph mode. If an entityId is given without a requested mode and we're currently in atlas, switch to spotlight (spotlight is the right default for "show me what's near this thing").</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="sub-h">Global escape hatch</div>
+        <p class="blurb"><code class="inline">window.__openGraph</code> is set to <code class="inline">openGraph</code> on every mount so leaf components (<code class="inline">InlineProse</code> → <code class="inline">EntityRef</code>, hover-card buttons) can call into graph navigation without prop-threading. Replace this with a React context in production; the shape is identical.</p>
+      </div>
+
+      <div>
+        <div class="preview-frame">
+          <div class="preview-label">Persistence contract</div>
+          <div class="code"><span class="cm">// LS key — see bento/app.jsx</span>
+<span class="kw">const</span> LS_KEY = <span class="st">"trellis:&lt;reportId&gt;:v1"</span>;
+
+<span class="cm">// Saved shape</span>
+{ mode: <span class="st">"guided"</span>, sectionId: <span class="st">"foundations"</span>, graphMode: <span class="st">"atlas"</span> }
+
+<span class="cm">// Load runs once, guarded — corrupt JSON → fresh state.</span>
+<span class="cm">// Save runs in a useEffect on every change.</span>
+</div>
+        </div>
+
+        <div class="preview-frame" style="margin-top: 14px;">
+          <div class="preview-label">Keyboard shortcuts (global)</div>
+          <ul class="interactions">
+            <li><span class="trig">O</span><span class="eff">Switch to Orientation</span></li>
+            <li><span class="trig">G</span><span class="eff">Switch to Guided</span></li>
+            <li><span class="trig">R</span><span class="eff">Switch to Reference</span></li>
+            <li><span class="trig">S</span><span class="eff">Switch to Synthesis</span></li>
+            <li><span class="trig">K</span><span class="eff">Switch to Graph</span></li>
+            <li><span class="trig">[ or H</span><span class="eff">Previous section (only when in guided)</span></li>
+            <li><span class="trig">] or L</span><span class="eff">Next section</span></li>
+            <li><span class="trig">⌘K / Ctrl+K</span><span class="eff">Open command palette <em>(not in V1; reserve the shortcut)</em></span></li>
+          </ul>
+          <p class="t-caption" style="margin-top: 10px;">Listener ignores keystrokes when the target is an <code class="inline">input</code>, <code class="inline">textarea</code>, or contentEditable. Modifier keys (⌘/Ctrl) pass through. The hint strip at the bottom-center of the viewport is decorative and <code class="inline">pointer-events: none</code>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       05 · TOP BAR
+       ===================================================== -->
+  <section class="spec" id="topbar">
+    <div class="head"><span class="n">05</span><span class="ti">TopBar — global header</span></div>
+    <p class="intro">Sticky 60px-tall bar across the top of every view. Logo on the left, mode switcher centered, search affordance on the right.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="preview-frame">
+          <div class="preview-label">Preview</div>
+          <div class="topbar-demo">
+            <div class="left">
+              <div class="glyph" aria-hidden="true"></div>
+              <div>
+                <div class="wm">Trellis</div>
+                <div class="sb">postgres-mvcc</div>
+              </div>
+            </div>
+            <div class="modes-track" role="tablist">
+              <button class="seg active">Orientation</button>
+              <button class="seg">Guided</button>
+              <button class="seg">Reference</button>
+              <button class="seg">Synthesis</button>
+              <button class="seg">Graph</button>
+            </div>
+            <div class="search-chip">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="5.5" cy="5.5" r="3.5"/><path d="M8.5 8.5L11 11"/></svg>
+              Search <span class="kbd">⌘K</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">TopBar</div>
+            <div class="role">chrome</div>
+            <div class="src">bento/components.jsx</div>
+          </div>
+          <p class="blurb">Same layout in every mode. The mode switcher is the only stateful element; clicking a segment fires <code class="inline">onMode(id)</code>.</p>
+        </div>
+
+        <div class="sub-h">Props</div>
+        <div class="tbl"><table>
+          <thead><tr><th>Prop</th><th>Type</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">mode</td><td class="mono">Mode</td><td>Which segment is active.</td></tr>
+            <tr><td class="mono">onMode</td><td class="mono">(m: Mode) =&gt; void</td><td>Fired on segment click.</td></tr>
+            <tr><td class="mono">onLogo</td><td class="mono">() =&gt; void</td><td>Logo click. Wired to "switch to orientation".</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="sub-h">Anatomy</div>
+        <div class="tbl"><table>
+          <tbody>
+            <tr><td class="k">Container</td><td class="mono">bg-bg · border-b border-border-soft · sticky top-0 z-20 · px-6 py-3.5</td></tr>
+            <tr><td class="k">Logo block</td><td class="mono">flex items-center gap-3.5 · cursor-pointer</td></tr>
+            <tr><td class="k">Glyph</td><td class="mono">32×32 · bg-ink · rounded-lg · center coral 12px dot</td></tr>
+            <tr><td class="k">Wordmark</td><td class="mono">text-label (Manrope 13/700) · ink</td></tr>
+            <tr><td class="k">Subline</td><td class="mono">text-mono 10 · ink-3 · the report id</td></tr>
+            <tr><td class="k">Mode track</td><td class="mono">bg-surface · rounded-pill · border-border-soft · p-1 · gap-1.5</td></tr>
+            <tr><td class="k">Active segment</td><td class="mono">bg-ink · text-bg · rounded-pill · px-3.5 py-1.5 · text-label 12</td></tr>
+            <tr><td class="k">Inactive segment</td><td class="mono">transparent · text-ink-2 · transition fast</td></tr>
+            <tr><td class="k">Search chip</td><td class="mono">bg-surface · border-border-soft · rounded-pill · ⌘K hint in mono 10 ink-3</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="sub-h">Interactions</div>
+        <ul class="interactions">
+          <li><span class="trig">click segment</span><span class="eff">Fire <code class="inline">onMode</code> with the segment id.</span></li>
+          <li><span class="trig">click logo</span><span class="eff">Fire <code class="inline">onLogo</code> (shell switches to orientation).</span></li>
+          <li><span class="trig">hover inactive seg</span><span class="eff"><em>None.</em> The active fill is the only signal — keep it quiet.</span></li>
+          <li><span class="trig">click search</span><span class="eff"><em>V1.x</em>. Reserve the affordance; render the chip non-interactive in V1.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       06 · NAV PANEL
+       ===================================================== -->
+  <section class="spec" id="navpanel">
+    <div class="head"><span class="n">06</span><span class="ti">NavPanel — sticky left sidebar, always visible</span></div>
+    <p class="intro">The reader's place-keeping device. 296px wide, sticks to the viewport. Two tabs (Sections, Synthesis) over a tree, then a small jump-block for Orientation / Reference / Graph. Reflects the reader's current location in every mode — the prototype intentionally killed the standalone Map page in favour of this panel.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="preview-frame">
+          <div class="preview-label">Preview · Sections tab, §01 expanded, "found-update" current</div>
+          <div class="nav-demo">
+            <div class="tabs">
+              <button class="tab active">Sections <span class="ct">7</span></button>
+              <button class="tab">Synthesis <span class="ct">13</span></button>
+            </div>
+            <div class="rep-head">
+              <div class="rep-title">How Postgres MVCC Works</div>
+              <div class="rep-meta">7 sections · ≈ 45 min</div>
+            </div>
+            <div class="tree">
+              <div class="row-sec active expanded">
+                <span class="ch">›</span>
+                <span class="n">01</span>
+                <span class="t">Foundations</span>
+              </div>
+              <div class="row-sub"><span class="dot"></span><span class="t">What's the problem?</span></div>
+              <div class="row-sub"><span class="dot"></span><span class="t">The mental model</span></div>
+              <div class="row-sub current"><span class="dot"></span><span class="t">What happens on UPDATE</span></div>
+              <div class="row-sub"><span class="dot"></span><span class="t">Two ideas, then one design</span></div>
+              <div class="row-sec"><span class="ch">›</span><span class="n">02</span><span class="t">Tuple versions</span></div>
+              <div class="row-sec"><span class="ch">›</span><span class="n">03</span><span class="t">Snapshots</span></div>
+              <div class="row-sec"><span class="ch">›</span><span class="n">04</span><span class="t">VACUUM</span></div>
+            </div>
+            <div class="jumps">
+              <div class="jump"><div><div class="lab">Orientation</div><div class="hint">Hero · what's here</div></div><span class="arr">→</span></div>
+              <div class="jump active"><div><div class="lab">Reference</div><div class="hint">28 entities · 12 sources</div></div><span class="arr">→</span></div>
+              <div class="jump"><div><div class="lab">Knowledge graph</div><div class="hint">Entities &amp; relationships</div></div><span class="arr">→</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">NavPanel</div>
+            <div class="role">chrome</div>
+            <div class="src">bento/components.jsx</div>
+          </div>
+          <p class="blurb">A sticky 296px column composed of (1) tab strip, (2) report header, (3) tree, (4) jump block.</p>
+        </div>
+
+        <div class="sub-h">Props</div>
+        <div class="tbl"><table>
+          <thead><tr><th>Prop</th><th>Type</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">currentSectionId</td><td class="mono">string | null</td><td>Highlights the row. Null in non-guided modes so the panel doesn't lie about location.</td></tr>
+            <tr><td class="mono">currentSubId</td><td class="mono">string | null</td><td>Highlights the sub-row (auto-set by GuidedView's IntersectionObserver).</td></tr>
+            <tr><td class="mono">mode</td><td class="mono">Mode</td><td>Drives which tab is active (synthesis flips to the Synthesis body) and which jump is highlighted.</td></tr>
+            <tr><td class="mono">onSection</td><td class="mono">(id, anchorId?) =&gt; void</td><td>Section / subsection click.</td></tr>
+            <tr><td class="mono">onMode</td><td class="mono">(m: Mode) =&gt; void</td><td>Tab click, jump-block click.</td></tr>
+            <tr><td class="mono">synFocus / onSynFocus</td><td class="mono">string | null · setter</td><td>Focus inside the synthesis tree.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="sub-h">Sub-components (all internal)</div>
+        <div class="tbl"><table>
+          <tbody>
+            <tr><td class="k">NavTab</td><td>Tab strip header. Active = bottom border 2px in tab's accent (sage for sections, coral for synthesis), font-weight 700.</td></tr>
+            <tr><td class="k">SectionsNavBody</td><td>Report header + collapsible section tree + expand/collapse-all icon buttons.</td></tr>
+            <tr><td class="k">NavSection</td><td>One section row: chevron + number + title. Chevron disabled (opacity 0) if no children.</td></tr>
+            <tr><td class="k">NavChildren</td><td>Recursive subsection tree. Indent +12px per depth. Vertical guide rule on depth&gt;0 (<code class="inline">border-l border-border-soft</code>).</td></tr>
+            <tr><td class="k">SynthesisNavBody</td><td>Flattened synthesis tree with depth indent + level-coloured dot per row.</td></tr>
+            <tr><td class="k">NavJump</td><td>Bottom block: Orientation / Reference / Graph quick switches.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="sub-h">Behaviour</div>
+    <ul class="interactions">
+      <li><span class="trig">section changes</span><span class="eff">The new section auto-expands. Manual toggles persist in component state per session (not in localStorage).</span></li>
+      <li><span class="trig">click chevron</span><span class="eff">Toggle expansion. Does not change selection.</span></li>
+      <li><span class="trig">click section row body</span><span class="eff">Fire <code class="inline">onSection(id)</code>. The shell switches to guided mode if not already there.</span></li>
+      <li><span class="trig">click subsection</span><span class="eff">Fire <code class="inline">onSection(parentId, childId)</code>. Guided view smooth-scrolls to <code class="inline">[data-anchor="childId"]</code> with 32px head-room.</span></li>
+      <li><span class="trig">re-click current sub</span><span class="eff">Shell bumps navTick so the same anchor scrolls again — the rule is "clicking the place I'm reading should never feel inert".</span></li>
+      <li><span class="trig">scroll within reading column</span><span class="eff">IntersectionObserver in GuidedView reports the most-visible anchor up; the matching subsection row gets the sage highlight + 2px left rule.</span></li>
+      <li><span class="trig">click expand-all / collapse-all icon</span><span class="eff">Bulk-set all sections' expansion state. Icons are 11×11 SVG chevrons in ink-3, hover→ink.</span></li>
+      <li><span class="trig">click "Synthesis" tab</span><span class="eff">Switch app mode to synthesis (does not just swap the panel body — synthesis tree always pairs with synthesis main pane).</span></li>
+      <li><span class="trig">click "Sections" tab while in synthesis</span><span class="eff">Switch back to guided.</span></li>
+      <li><span class="trig">hover row</span><span class="eff">Background tints to <code class="inline">bg-surface-2</code> if not already active. 120ms transition.</span></li>
+    </ul>
+
+    <div class="sub-h">Token anatomy</div>
+    <div class="tbl"><table>
+      <thead><tr><th>Part</th><th>Tokens</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Container</td><td class="mono">w-[296px] · bg-surface · border-r border-border-soft · sticky top-[60px] · h-[calc(100vh-60px)] · flex col</td></tr>
+        <tr><td class="k">Tab strip</td><td class="mono">flex · border-b border-border-soft · px-3 pt-2.5</td></tr>
+        <tr><td class="k">Tab</td><td class="mono">px-1 py-2.5 -mb-px · border-b-2 transparent → sage/coral on active · text-label · text-ink-3 → text-ink</td></tr>
+        <tr><td class="k">Report header</td><td class="mono">px-5.5 pt-3.5 pb-3 · border-b border-border-soft · text-h3-ish (serif 17/1.2/500)</td></tr>
+        <tr><td class="k">Tree container</td><td class="mono">flex-1 overflow-auto · px-2 py-2.5</td></tr>
+        <tr><td class="k">Section row</td><td class="mono">rounded-md · transition fast · active = bg-sage-bg · hover = bg-surface-2</td></tr>
+        <tr><td class="k">Section number</td><td class="mono">font-mono text-[10px] · text-ink-3 / kindColor / sage on active · min-w-4</td></tr>
+        <tr><td class="k">Section title</td><td class="mono">text-[13.5px] · weight 500/700 active · text-ink → sage on active</td></tr>
+        <tr><td class="k">Subsection row</td><td class="mono">pl-8 pr-2.5 py-1.5 · 4px dot ink-4 → sage when current · 2px left rule sage when current</td></tr>
+        <tr><td class="k">Jump block</td><td class="mono">px-3 pt-2.5 pb-3.5 · border-t border-border-soft · grid gap-0.5</td></tr>
+        <tr><td class="k">Active jump</td><td class="mono">bg-sage-bg · text-sage on label · arrow text-sage</td></tr>
+      </tbody>
+    </table></div>
+
+    <p class="t-caption" style="margin-top: 14px;">Kind→color comes from <code class="inline">KIND_COLOR</code> in <code class="inline">bento/components.jsx</code>: Concept → coral, Mechanism / Contract → sage, Maintenance → butter-ink, Advanced → coral. This same map is reused by the Recommended-path tile and the Regions graph layout — share the constant, do not duplicate.</p>
+  </section>
+
+  <!-- =====================================================
+       07 · RIGHT RAIL
+       ===================================================== -->
+  <section class="spec" id="rightrail">
+    <div class="head"><span class="n">07</span><span class="ti">RightRail — context column inside Guided view</span></div>
+    <p class="intro">A 280px right-hand companion column inside the guided reader. It is <strong>not</strong> a global panel — it lives inside GuidedView only. Three stacked sections, top-to-bottom: neighborhood mini-graph, related entities, sources.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">RightRail</div>
+            <div class="role">guided-only</div>
+            <div class="src">bento/views-guided.jsx</div>
+          </div>
+          <p class="blurb">Pure data display. Reads the current section's <code class="inline">relatedEntities</code> + the report's <code class="inline">sources</code>. Embeds a <code class="inline">MiniGraph</code> when there are ≥2 related entities.</p>
+        </div>
+
+        <div class="sub-h">Structure</div>
+        <div class="tbl"><table>
+          <thead><tr><th>Block</th><th>Shown when</th><th>Anatomy</th></tr></thead>
+          <tbody>
+            <tr><td class="k">Neighborhood mini-graph</td><td>≥ 2 related entities</td><td>"Neighborhood" eyebrow (coral) + "expand →" link (right-aligned, mono coral). Below: MiniGraph @ 220×160 in a bordered surface card. Click "expand →" calls <code class="inline">window.__openGraph(firstId, "spotlight")</code>.</td></tr>
+            <tr><td class="k">Related entities</td><td>always</td><td>"Related entities" eyebrow coral. Stack of up to 8 entity cards (link buttons). Each card: name in mono coral-ink 12/600, shortDef serif 11.5 ink-3, surface bg, border-soft, rounded-lg, hover → bg-coral-bg + translate-x 2px.</td></tr>
+            <tr><td class="k">Hairline rule</td><td>between</td><td>1px border-soft · my-6.</td></tr>
+            <tr><td class="k">Sources</td><td>always</td><td>"Sources" eyebrow sage. Top 3 source cards (title sans 12.5 ink/600, path mono 10 ink-3). "all N sources →" link in mono sage at the bottom → switches mode to reference.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="sub-h">Container tokens</div>
+        <div class="tbl"><table>
+          <tbody>
+            <tr><td class="k">Box</td><td class="mono">w-[280px] · border-l border-border-soft · px-6 pt-8 pb-24 · sticky top-[60px] · h-[calc(100vh-60px)] · overflow-auto · bg-bg</td></tr>
+            <tr><td class="k">Entity card</td><td class="mono">bg-surface · border-border-soft · rounded-lg · px-2.5 py-2.5 · hover bg-coral-bg + translate-x-[2px] · transition fast</td></tr>
+            <tr><td class="k">Source card</td><td class="mono">bg-surface · border-border-soft · rounded-md · px-2.5 py-2 · no hover (passive)</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div>
+        <div class="preview-frame">
+          <div class="preview-label">Preview · two entity cards + sources link</div>
+          <div style="display: grid; gap: 14px; max-width: 280px;">
+            <div>
+              <div class="ey coral">Related entities</div>
+              <div style="margin-top: 10px; display: grid; gap: 8px;">
+                <div style="background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-lg); padding: 9px 11px;">
+                  <div style="font-family: var(--font-mono); font-size: 12px; color: var(--color-accent-coral-ink); font-weight: 600;">snapshot</div>
+                  <div style="font-size: 11.5px; color: var(--color-ink-3); margin-top: 3px; line-height: 1.4;">The set of transaction ids a backend considers visible at the moment of its query.</div>
+                </div>
+                <div style="background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-lg); padding: 9px 11px;">
+                  <div style="font-family: var(--font-mono); font-size: 12px; color: var(--color-accent-coral-ink); font-weight: 600;">xmin</div>
+                  <div style="font-size: 11.5px; color: var(--color-ink-3); margin-top: 3px; line-height: 1.4;">The transaction id that wrote a tuple — its birth stamp.</div>
+                </div>
+              </div>
+            </div>
+            <div style="height: 1px; background: var(--color-border-soft); margin: 8px 0;"></div>
+            <div>
+              <div class="ey sage">Sources</div>
+              <div style="margin-top: 10px; display: grid; gap: 6px;">
+                <div style="padding: 8px 10px; background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border-soft);">
+                  <div style="font-size: 12.5px; color: var(--color-ink); font-weight: 600;">Postgres source: heapam.c</div>
+                  <div style="font-family: var(--font-mono); font-size: 10px; color: var(--color-ink-3); margin-top: 2px;">src/backend/access/heap/heapam.c</div>
+                </div>
+                <button style="background: transparent; border: none; cursor: pointer; font-family: var(--font-mono); font-size: 11px; color: var(--color-accent-sage); font-weight: 600; text-align: left; padding: 4px 0;">all 12 sources →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       08 · CARD
+       ===================================================== -->
+  <section class="spec" id="card">
+    <div class="head"><span class="n">08</span><span class="ti">Card — the atom under every block</span></div>
+    <p class="intro">Unstyled-by-default surface with a soft edge. Five surface modes, three accent modes, three padding modes, three radius modes. Every other block in the library is a Card with specific variants set.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">Card</div>
+            <div class="role">primitive</div>
+            <div class="src">bento/components.jsx</div>
+          </div>
+          <p class="blurb">No content, no defaults beyond <code class="inline">surface="default"</code>, <code class="inline">pad="default"</code>, <code class="inline">radius="3xl"</code>. Authors compose blocks on top of it.</p>
+        </div>
+
+        <div class="sub-h">Variants</div>
+        <div class="tbl"><table>
+          <thead><tr><th>Prop</th><th>Values</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">surface</td><td class="mono">default · raised · sunken · ink · bg</td><td><span class="muted">default = <code class="inline">bg-surface</code>; raised = adds <code class="inline">shadow-sm</code>; sunken = <code class="inline">bg-surface-2</code>; ink = inverted slab (key-takeaways); bg = transparent over page bg.</span></td></tr>
+            <tr><td class="mono">tone</td><td class="mono">none · sage · coral · butter</td><td>Tints the background to <code class="inline">bg-*-bg</code>. Used by callouts, mental-model, misconception, before-continue.</td></tr>
+            <tr><td class="mono">accent</td><td class="mono">none · sage · coral · butter</td><td>Adds a 4px left border in the accent. The "concept introducing" treatment. Mutually exclusive with <code class="inline">tone</code> in practice.</td></tr>
+            <tr><td class="mono">pad</td><td class="mono">tight · default · loose</td><td>Maps to <code class="inline">14·16</code> / <code class="inline">20·22</code> / <code class="inline">26·28</code> (y · x).</td></tr>
+            <tr><td class="mono">radius</td><td class="mono">xl · 2xl · 3xl</td><td>Default <code class="inline">3xl</code> (18px). 2xl is the block radius; 3xl is the bento radius.</td></tr>
+            <tr><td class="mono">span</td><td class="mono">number (1–12)</td><td>Bento grid column span. Only meaningful inside an orientation grid.</td></tr>
+            <tr><td class="mono">tall</td><td class="mono">number</td><td>Bento grid row span.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="sub-h">Border + radius defaults</div>
+        <div class="tbl"><table>
+          <tbody>
+            <tr><td class="k">Default frame</td><td class="mono">border border-border-soft · rounded-3xl · bg-surface · px-5.5 py-5</td></tr>
+            <tr><td class="k">Ink surface</td><td class="mono">bg-ink · text-bg · border-none — eyebrow uses coral on ink (still on-system).</td></tr>
+            <tr><td class="k">Accent border</td><td class="mono">border-l-[4px] border-l-{accent} · keep all four sides; accent overrides only the left.</td></tr>
+          </tbody>
+        </table></div>
+
+        <p class="t-caption" style="margin-top: 10px;">No <code class="inline">hover</code> styling on Card itself. Hover is a block-level decision because not every block is interactive.</p>
+      </div>
+
+      <div>
+        <div class="preview-frame">
+          <div class="preview-label">surface · default</div>
+          <div class="card" style="margin: 0;">
+            <div class="ey coral">Concept · introducing</div>
+            <div class="t-h3" style="margin-top: 6px;">A card with default surface</div>
+            <div class="t-body" style="margin-top: 8px;">White paper. Soft border. The body of nine of the ten block types.</div>
+          </div>
+        </div>
+
+        <div class="preview-frame" style="margin-top: 10px;">
+          <div class="preview-label">surface · ink</div>
+          <div style="background: var(--color-ink); color: var(--color-bg); border-radius: var(--radius-3xl); padding: 20px 22px;">
+            <div class="ey" style="color: var(--color-accent-coral);">Key takeaways</div>
+            <div class="t-body" style="margin-top: 8px; color: var(--color-bg);">Inverted slab. Coral on ink for the eyebrow; bg for body text.</div>
+          </div>
+        </div>
+
+        <div class="preview-frame" style="margin-top: 10px;">
+          <div class="preview-label">tone · sage · pad · tight</div>
+          <div style="background: var(--color-accent-sage-bg); border: 1px solid var(--color-border-soft); border-radius: var(--radius-3xl); padding: 14px 16px;">
+            <div class="ey sage">Mental model</div>
+            <div class="t-body" style="margin-top: 6px;">Sage tint as a background, tight padding for an in-flow aside.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       09 · EYEBROW / DOT / TAG
+       ===================================================== -->
+  <section class="spec" id="eyebrow">
+    <div class="head"><span class="n">09</span><span class="ti">Eyebrow · Dot · Tag — the tiny three</span></div>
+    <p class="intro">Three micro-primitives the library reuses everywhere. None of them have hover behaviour; they're labels, not buttons.</p>
+
+    <div class="grid-3">
+      <div class="preview-frame">
+        <div class="preview-label">Eyebrow</div>
+        <div class="ey">Default · ink-3</div>
+        <div class="ey coral" style="margin-top: 8px;">Coral · concept</div>
+        <div class="ey sage" style="margin-top: 8px;">Sage · mechanism</div>
+        <div class="ey butter" style="margin-top: 8px;">Butter · maintenance</div>
+        <div style="margin-top: 14px; font-size: 12px; color: var(--color-ink-2);">
+          <code class="inline">&lt;Eyebrow color?&gt;</code><br>
+          <span class="t-caption">mono · 11 · 700 · 0.14em · uppercase. Pass a color override for the three accent variants. Used to mark block kind, section areas, and column headers.</span>
+        </div>
+      </div>
+
+      <div class="preview-frame">
+        <div class="preview-label">Dot</div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <span style="display:inline-block; width:8px; height:8px; border-radius:999px; background: var(--color-accent-sage);"></span>
+          <span style="display:inline-block; width:8px; height:8px; border-radius:999px; background: var(--color-accent-coral);"></span>
+          <span style="display:inline-block; width:8px; height:8px; border-radius:999px; background: var(--color-accent-butter-ink);"></span>
+          <span style="display:inline-block; width:8px; height:8px; border-radius:999px; background: var(--color-ink);"></span>
+        </div>
+        <div style="margin-top: 14px; font-size: 12px; color: var(--color-ink-2);">
+          <code class="inline">&lt;Dot color size? /&gt;</code><br>
+          <span class="t-caption">Default 8px. Used in the Recommended-path tile, MiniGraph nodes label-anchors, and ad-hoc legends. Always <em>solid</em>; no rings, no outlines.</span>
+        </div>
+      </div>
+
+      <div class="preview-frame">
+        <div class="preview-label">InlineTag</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <span class="inline-tag">postgres-mvcc</span>
+          <span class="inline-tag">7 sections</span>
+          <span class="inline-tag">≈ 45 min</span>
+          <span class="inline-tag">28 entities</span>
+        </div>
+        <div style="margin-top: 14px; font-size: 12px; color: var(--color-ink-2);">
+          <code class="inline">&lt;InlineTag&gt;</code><br>
+          <span class="t-caption">Read-only metadata pill. bg-surface-3 · rounded-sm · mono 11 · ink-2. Never wired to onClick — for clickable metadata use a button + the same visual.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       10 · BUTTONS & TABS
+       ===================================================== -->
+  <section class="spec" id="buttons">
+    <div class="head"><span class="n">10</span><span class="ti">Buttons, tabs, pill-tracks</span></div>
+    <p class="intro">Three button variants, one tab track. The tab track inside the TopBar mode switcher and the tab track inside ReferenceView's Entities/Sources switcher are the same component with different content.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="preview-frame">
+          <div class="preview-label">Variants</div>
+          <div class="row">
+            <button class="btn btn-primary">Continue to §02 · Tuple versions →</button>
+            <button class="btn btn-secondary">All 12 sources</button>
+            <button class="btn btn-ghost">Cancel</button>
+          </div>
+        </div>
+
+        <div class="preview-frame" style="margin-top: 10px;">
+          <div class="preview-label">Tab track (segmented control)</div>
+          <div class="modes-track">
+            <button class="seg active">Orientation</button>
+            <button class="seg">Guided</button>
+            <button class="seg">Reference</button>
+            <button class="seg">Synthesis</button>
+            <button class="seg">Graph</button>
+          </div>
+        </div>
+
+        <div class="preview-frame" style="margin-top: 10px;">
+          <div class="preview-label">Tab track (graph-mode switcher · richer)</div>
+          <div style="display: inline-flex; gap: 4px; padding: 4px; background: var(--color-surface); border-radius: var(--radius-xl); border: 1px solid var(--color-border-soft);">
+            <button style="background: var(--color-ink); color: var(--color-bg); border: none; border-radius: 8px; padding: 8px 14px; font-family: var(--font-sans); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; gap: 1px; align-items: flex-start;">
+              <span>Atlas</span>
+              <span style="font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; color: var(--color-accent-coral); text-transform: uppercase; font-weight: 600;">full graph</span>
+            </button>
+            <button style="background: transparent; color: var(--color-ink-2); border: none; border-radius: 8px; padding: 8px 14px; font-family: var(--font-sans); font-size: 13px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; gap: 1px; align-items: flex-start;">
+              <span>Spotlight</span>
+              <span style="font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; color: var(--color-ink-4); text-transform: uppercase; font-weight: 600;">neighborhood</span>
+            </button>
+            <button style="background: transparent; color: var(--color-ink-2); border: none; border-radius: 8px; padding: 8px 14px; font-family: var(--font-sans); font-size: 13px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; gap: 1px; align-items: flex-start;">
+              <span>Regions</span>
+              <span style="font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; color: var(--color-ink-4); text-transform: uppercase; font-weight: 600;">by section</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sub-h">Variant table</div>
+        <div class="tbl"><table>
+          <thead><tr><th>Variant</th><th>Background</th><th>Ink</th><th>Border</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">primary</td><td class="mono">bg-ink</td><td class="mono">text-bg</td><td class="mono">none</td><td>The one action the user is meant to take.</td></tr>
+            <tr><td class="mono">secondary</td><td class="mono">bg-surface</td><td class="mono">text-ink</td><td class="mono">border-border-soft</td><td>"see all", "open", alternative.</td></tr>
+            <tr><td class="mono">ghost</td><td class="mono">transparent</td><td class="mono">text-ink-2</td><td class="mono">none</td><td>Tertiary, cancel, in-line "skip".</td></tr>
+            <tr><td class="mono">tab · active</td><td class="mono">bg-ink</td><td class="mono">text-bg</td><td class="mono">none</td><td>Pill-track segmented control.</td></tr>
+            <tr><td class="mono">tab · inactive</td><td class="mono">transparent</td><td class="mono">text-ink-2 → text-ink on hover</td><td class="mono">none</td><td>Within the same track.</td></tr>
+            <tr><td class="mono">icon · subtle</td><td class="mono">transparent</td><td class="mono">text-ink-3 → text-ink on hover</td><td class="mono">none</td><td>Expand-all/collapse-all in NavPanel; close × in EntityDetail.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="sub-h">Shared button rules</div>
+        <ul class="interactions">
+          <li><span class="trig">shape</span><span class="eff"><code class="inline">rounded-pill</code> for actions; <code class="inline">rounded-lg / rounded-md</code> for in-card buttons. Never square corners.</span></li>
+          <li><span class="trig">type</span><span class="eff"><code class="inline">text-label</code> (Manrope 13/700). Never serif.</span></li>
+          <li><span class="trig">padding</span><span class="eff">Primary/secondary/ghost: <code class="inline">px-3.5 py-2.5</code>. Tab segments: <code class="inline">px-3.5 py-1.5</code> (smaller because the track wraps them).</span></li>
+          <li><span class="trig">hover</span><span class="eff">Primary stays ink (the press cue is the cursor — no double signal). Secondary → bg-surface-2. Ghost → text-ink. Pagination "next" leans 2px right on hover (translateX).</span></li>
+          <li><span class="trig">focus-visible</span><span class="eff">2px outline in <code class="inline">--color-accent-sage</code>, offset 2px. (Add for production; the prototype skips it.)</span></li>
+          <li><span class="trig">disabled</span><span class="eff">Opacity 0.4 · cursor default. Hover is a no-op.</span></li>
+        </ul>
+
+        <div class="sub-h">Right-arrow convention</div>
+        <p class="t-body" style="font-size: 16px;">Every "go" button ends with a right arrow inline. Primary uses an emdash-ish arrow (<code class="inline">→</code>) in the button color. Pagination "next" tints the arrow coral on the ink background; ghost links tint coral or sage to match their accent context.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       11 · INLINE PROSE
+       ===================================================== -->
+  <section class="spec" id="inline-prose">
+    <div class="head"><span class="n">11</span><span class="ti">InlineProse — the single text renderer</span></div>
+    <p class="intro">Every <code class="inline">body</code> string anywhere in the data model goes through one component. Prose strings are <strong>not Markdown</strong>; they're a tiny HTML-ish dialect with three legal inline tags. The renderer is in <code class="inline">bento/components.jsx</code> as a regex-based tokenizer.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">InlineProse</div>
+            <div class="role">primitive</div>
+            <div class="src">bento/components.jsx · function InlineProse</div>
+          </div>
+          <p class="blurb">Walks the string, splits at <code class="inline">&lt;e&gt;</code> / <code class="inline">&lt;em&gt;</code> / <code class="inline">&lt;code&gt;</code>, emits React children. The wrapping element decides the type role — InlineProse never sets its own font.</p>
+        </div>
+
+        <div class="sub-h">Legal tags</div>
+        <div class="tbl"><table>
+          <thead><tr><th>Tag</th><th>Renders as</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">&lt;e id="xmin"&gt;xmin&lt;/e&gt;</td><td>EntityRef</td><td>id must match an Entity in the report's KG; build fails on dangling refs (see DESIGN §8 validation).</td></tr>
+            <tr><td class="mono">&lt;em&gt;...&lt;/em&gt;</td><td>italic</td><td>font-style: italic · text-ink (slightly darkens the emphasised run).</td></tr>
+            <tr><td class="mono">&lt;code&gt;...&lt;/code&gt;</td><td>inline code chip</td><td>bg-surface-3 · rounded-xs · px-1.5 · mono 0.92em. Distinct from EntityRef — entities are coral; code is neutral.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="sub-h">Forbidden</div>
+        <p class="t-body">No nested entity refs. No links, lists, or block-level tags. The reasoning: prose strings are a finite vocabulary the validator can check. Anything more elaborate is a different block type.</p>
+
+        <div class="sub-h">Props</div>
+        <div class="tbl"><table>
+          <thead><tr><th>Prop</th><th>Type</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">text</td><td class="mono">string</td><td>Raw prose with optional tags.</td></tr>
+            <tr><td class="mono">onEntityClick</td><td class="mono">(id) =&gt; void</td><td>Forwarded into every EntityRef rendered. Almost always the shell's <code class="inline">openEntity</code>.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div>
+        <div class="preview-frame">
+          <div class="preview-label">Preview · inside text-body (serif 18/1.62)</div>
+          <div class="t-body" style="margin: 0;">
+            Each transaction reads from its own <span class="e-ref">snapshot</span> of the database — a frozen moment that determines what <span class="e-ref">xmin</span> and <span class="e-ref">xmax</span> values it considers visible. Note that <em>every write makes a new row</em>: an UPDATE doesn't change a row in place. A SELECT like <code class="inline">SELECT xmin, xmax FROM pg_class;</code> exposes the columns directly.
+          </div>
+        </div>
+
+        <div class="preview-frame" style="margin-top: 10px;">
+          <div class="preview-label">Source string</div>
+          <div class="code" style="white-space: pre-wrap;"><span class="cm">// Block body for the prose above</span>
+{
+  kind: <span class="st">"prose"</span>,
+  body:
+    <span class="st">"Each transaction reads from its own &lt;e id=\"snapshot\"&gt;snapshot&lt;/e&gt; "</span> +
+    <span class="st">"of the database — a frozen moment that determines what "</span> +
+    <span class="st">"&lt;e id=\"xmin\"&gt;xmin&lt;/e&gt; and &lt;e id=\"xmax\"&gt;xmax&lt;/e&gt; values it "</span> +
+    <span class="st">"considers visible. Note that &lt;em&gt;every write makes a new row&lt;/em&gt;: "</span> +
+    <span class="st">"an UPDATE doesn't change a row in place. A SELECT like "</span> +
+    <span class="st">"&lt;code&gt;SELECT xmin, xmax FROM pg_class;&lt;/code&gt; exposes the columns directly."</span>,
+}
+</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       12 · ENTITY REF + HOVER CARD
+       ===================================================== -->
+  <section class="spec" id="entity-ref">
+    <div class="head"><span class="n">12</span><span class="ti">EntityRef + HoverCard — the most-used affordance</span></div>
+    <p class="intro">An inline mention of an entity. Dotted-underline coral chip in flow; on hover, a portalled popover with the short definition, primary-section indicator, and two actions: open in Reference, see in Graph. Click jumps to Reference focused on the entity.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">EntityRef</div>
+            <div class="role coral">inline</div>
+            <div class="src">bento/components.jsx · function EntityRef</div>
+          </div>
+          <p class="blurb">Reads <code class="inline">window.B.entities</code> in the prototype; in production it should read via context provided by <code class="inline">PageShell</code>. Uses <code class="inline">ReactDOM.createPortal</code> for the hover-card so the popover escapes any clipping ancestor (e.g. card with <code class="inline">overflow: hidden</code>).</p>
+        </div>
+
+        <div class="sub-h">Props</div>
+        <div class="tbl"><table>
+          <thead><tr><th>Prop</th><th>Type</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">id</td><td class="mono">string</td><td>Entity id. Build fails if missing from the KG.</td></tr>
+            <tr><td class="mono">children</td><td class="mono">ReactNode</td><td>The displayed text (usually the entity name; aliases allowed).</td></tr>
+            <tr><td class="mono">onClick</td><td class="mono">(id) =&gt; void</td><td>Fires on click. Almost always the shell's <code class="inline">openEntity</code>.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="sub-h">Chip anatomy</div>
+        <div class="tbl"><table>
+          <tbody>
+            <tr><td class="k">Chip background</td><td class="mono">bg-coral-bg · rounded-xs · px-1.5</td></tr>
+            <tr><td class="k">Chip ink</td><td class="mono">text-coral-ink · font-mono · 0.92em · weight 500</td></tr>
+            <tr><td class="k">Underline</td><td class="mono">border-b border-dotted border-coral</td></tr>
+            <tr><td class="k">Cursor</td><td class="mono">pointer</td></tr>
+            <tr><td class="k">Focus</td><td class="mono">tabIndex 0 — show/hide also fires on focus/blur.</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="sub-h">Entity type → chip color</div>
+        <div class="tbl"><table>
+          <thead><tr><th>Entity type</th><th>Chip color</th><th>Used by</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">concept</td><td class="mono">coral</td><td>Concepts, ideas, abstractions. <em>Default.</em></td></tr>
+            <tr><td class="mono">pattern</td><td class="mono">coral-ink (darker)</td><td>Patterns, idioms.</td></tr>
+            <tr><td class="mono">feature</td><td class="mono">sage</td><td>Postgres features, system mechanisms.</td></tr>
+            <tr><td class="mono">file · function · type · component</td><td class="mono">butter-ink</td><td>Code entities.</td></tr>
+            <tr><td class="mono">library · paper · person</td><td class="mono">ink-2 (no chip tint)</td><td>External references — quieter.</td></tr>
+          </tbody>
+        </table></div>
+
+        <p class="t-caption" style="margin-top: 10px;">Constants: <code class="inline">ENTITY_TYPE_COLOR</code> in <code class="inline">bento/components.jsx</code>. Same map drives MiniGraph node strokes and Atlas node fills.</p>
+      </div>
+
+      <div>
+        <div class="preview-frame">
+          <div class="preview-label">In flow</div>
+          <div class="t-body">
+            Postgres uses a strategy called <span class="e-ref">MVCC</span> to let readers and writers stop blocking each other. Each transaction holds a <span class="e-ref">snapshot</span> — the small set of transaction ids it considers committed.
+          </div>
+        </div>
+
+        <div class="preview-frame bg" style="margin-top: 14px;">
+          <div class="preview-label">HoverCard (portalled)</div>
+          <div class="hover-card">
+            <div class="hc-head">
+              <span class="nm">snapshot</span>
+              <span class="tp">concept</span>
+            </div>
+            <div class="def">The set of transaction ids a backend considers committed at the moment of its query. The snapshot decides which row versions a SELECT can see.</div>
+            <div class="foot">
+              <span class="src">§01 · Foundations</span>
+              <div style="display: flex; gap: 6px;">
+                <button class="ghost" title="See in graph">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="5" cy="5" r="1.6" fill="currentColor"/><circle cx="1.6" cy="2" r="1.1"/><circle cx="8.4" cy="2" r="1.1"/><circle cx="2" cy="8.4" r="1.1"/><circle cx="8" cy="8.4" r="1.1"/><path d="M5 5L1.6 2M5 5L8.4 2M5 5L2 8.4M5 5L8 8.4"/></svg>
+                  &nbsp;graph
+                </button>
+                <button>open →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-h">HoverCard anatomy</div>
+    <div class="tbl"><table>
+      <tbody>
+        <tr><td class="k">Container</td><td class="mono">w-80 · bg-surface · rounded-xl · border-border · shadow-pop · px-4 py-3.5</td></tr>
+        <tr><td class="k">Animation</td><td class="mono">animate-pop-in — fade + scale 0.98→1, 120ms ease-out (see motion §07 in the design system)</td></tr>
+        <tr><td class="k">Positioning</td><td class="mono">Portalled to <code class="inline">document.body</code>. Anchored just below the chip, centered horizontally via <code class="inline">translateX(-50%)</code>. Use Radix Popover for production — viewport flipping + collision detection comes free.</td></tr>
+        <tr><td class="k">Name</td><td class="mono">text-label · font-mono · text-coral-ink · weight 600 · 13px</td></tr>
+        <tr><td class="k">Type badge</td><td class="mono">text-eyebrow scaled to 9 · ink-3 · top-right</td></tr>
+        <tr><td class="k">Definition</td><td class="mono">text-body 14/1.45 (serif) · text-ink · text-wrap pretty</td></tr>
+        <tr><td class="k">Foot</td><td class="mono">mt-2.5 pt-2.5 border-t border-border-soft · flex justify-between items-center</td></tr>
+        <tr><td class="k">Section indicator</td><td class="mono">text-caption · ink-3 · ellipsis when long</td></tr>
+        <tr><td class="k">Open button</td><td class="mono">bg-ink text-bg · rounded-sm · px-2 py-0.5 · text-label 11</td></tr>
+        <tr><td class="k">Graph button</td><td class="mono">bg-surface-2 · border-border-soft · text-ink-2 · same shape as Open · 10×10 SVG glyph + "graph" label</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="sub-h">Interactions</div>
+    <ul class="interactions">
+      <li><span class="trig">mouseenter chip</span><span class="eff">After 140ms delay, open hover-card. Delay prevents flickers on cursor sweeps.</span></li>
+      <li><span class="trig">mouseleave chip</span><span class="eff">After 120ms delay, close. The card listens to its own enter/leave so the cursor can travel onto the card without it dismissing.</span></li>
+      <li><span class="trig">focus chip (tab)</span><span class="eff">Same open path as hover.</span></li>
+      <li><span class="trig">blur chip</span><span class="eff">Same close path as mouseleave.</span></li>
+      <li><span class="trig">click chip</span><span class="eff">Fire <code class="inline">onClick(id)</code> (defaults to openEntity → Reference view). <code class="inline">preventDefault</code> — never navigate the browser.</span></li>
+      <li><span class="trig">click "graph" button</span><span class="eff">Call <code class="inline">window.__openGraph(id, "spotlight")</code>. <code class="inline">stopPropagation</code> so the chip's onClick doesn't also fire.</span></li>
+      <li><span class="trig">click "open →" button</span><span class="eff">Same as clicking the chip. Redundancy is deliberate — the card is the affordance for users who hover before they're ready to commit.</span></li>
+      <li><span class="trig">scroll while open</span><span class="eff">Coordinates re-anchor to the chip's new bounding rect (Radix Popover handles this; the prototype freezes coords — acceptable for V1).</span></li>
+      <li><span class="trig">Escape</span><span class="eff">Close. (Radix gives this for free.)</span></li>
+    </ul>
+
+    <p class="t-caption" style="margin-top: 12px;">The 140ms / 120ms enter/leave delays are deliberately not in the motion token list — they're <em>intent</em> timing, not animation timing. Don't replace them with <code class="inline">--motion-fast</code>.</p>
+  </section>
+
+  <!-- =====================================================
+       13 · CONCEPT INTRO
+       ===================================================== -->
+  <section class="spec" id="concept-intro">
+    <div class="head"><span class="n">13</span><span class="ti">ConceptIntro — opening a new idea</span></div>
+    <p class="intro">The block that introduces a concept for the first time. White card with a 4px coral left rule and the "Concept · introducing" coral eyebrow. Sits at the top of any section that's <em>defining</em> something.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="preview-frame bg">
+          <div class="preview-label">Preview</div>
+          <div class="blk blk-concept">
+            <div class="ey coral">Concept · introducing</div>
+            <div class="t-h3" style="margin-top: 8px;">What's the problem MVCC is solving?</div>
+            <div class="t-body" style="margin-top: 12px;">A database is a single, shared piece of state. The moment two clients are reading and writing at the same time, the system has to decide whose view of the world is real. Locking is one answer. <span class="e-ref">MVCC</span> is a different one — one that lets readers and writers stop blocking each other entirely.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">ConceptIntro</div>
+            <div class="role coral">teaching</div>
+            <div class="src">bento/views-guided.jsx · function ConceptIntro</div>
+          </div>
+          <p class="blurb">Card · <code class="inline">accent="coral"</code>. Body uses InlineProse, so entity refs work in-place.</p>
+        </div>
+        <div class="sub-h">Anatomy</div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">Card surface=default · 4px left border in coral · rounded-2xl · px-7 py-6.5</td></tr>
+          <tr><td class="k">Eyebrow</td><td class="mono">"Concept · introducing" · text-eyebrow color-coral</td></tr>
+          <tr><td class="k">Title</td><td class="mono">text-h3 (serif 22-26/1.2/500) · text-ink · mt-2</td></tr>
+          <tr><td class="k">Body</td><td class="mono">text-body (serif 18/1.55) · text-ink · mt-3.5 · InlineProse</td></tr>
+        </tbody></table></div>
+        <div class="sub-h">Block data</div>
+        <div class="code">{ kind: <span class="st">"conceptIntro"</span>, title: <span class="pr">string</span>, body: <span class="pr">string</span>, anchorId?: <span class="pr">string</span> }</div>
+        <p class="t-caption" style="margin-top: 10px;">No hover state. Static. Entity refs inside body remain interactive.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       14 · MENTAL MODEL
+       ===================================================== -->
+  <section class="spec" id="mental-model">
+    <div class="head"><span class="n">14</span><span class="ti">MentalModel — the one-sentence frame</span></div>
+    <p class="intro">A sage-tinted card with a small lightbulb glyph. Used once or twice per section to articulate the picture the reader should hold in their head. Has an optional italic <code class="inline">aside</code> tucked beneath a hairline rule — the "if you remember nothing else" line.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="preview-frame bg">
+          <div class="preview-label">Preview</div>
+          <div class="blk blk-mental">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 28px; height: 28px; border-radius: 9px; background: var(--color-accent-sage); color: var(--color-bg); display: flex; align-items: center; justify-content: center;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1.5c-2.5 0-4 2-4 4 0 1.5.7 2.6 1.7 3.4v2.6h4.6V8.9C10.3 8.1 11 7 11 5.5c0-2-1.5-4-4-4z"/><path d="M5.5 12.5h3"/></svg>
+              </div>
+              <div class="ey sage">Mental model</div>
+            </div>
+            <div class="t-h3" style="margin-top: 10px;">The mental model in one sentence</div>
+            <div class="t-body" style="margin-top: 12px;">Each transaction reads from its own snapshot of the database — a frozen moment that ignores anything that hasn't committed yet, and ignores anything that committed after the snapshot was taken.</div>
+            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--color-border-soft); font-family: var(--font-sans); font-size: 13.5px; color: var(--color-ink-2); line-height: 1.5; font-style: italic;">If you remember nothing else from this report, remember this: a Postgres reader never sees a half-written world.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">MentalModel</div>
+            <div class="role">teaching</div>
+            <div class="src">bento/views-guided.jsx · function MentalModel</div>
+          </div>
+          <p class="blurb">Card · <code class="inline">tone="sage"</code>. The lightbulb glyph is a 14×14 stroked SVG inside a 28×28 sage tile (radius lg). Hand-keep the SVG — it's small and on-brand; never replace with an emoji or icon library.</p>
+        </div>
+        <div class="sub-h">Anatomy</div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">Card tone=sage · rounded-2xl · px-6.5 py-6</td></tr>
+          <tr><td class="k">Glyph tile</td><td class="mono">28×28 · bg-sage · rounded-lg · centered 14×14 SVG bulb · stroke text-bg</td></tr>
+          <tr><td class="k">Eyebrow</td><td class="mono">"Mental model" · color-sage-ink</td></tr>
+          <tr><td class="k">Title</td><td class="mono">text-h3 · text-ink · mt-2.5</td></tr>
+          <tr><td class="k">Body</td><td class="mono">text-body · text-ink · mt-3 · InlineProse</td></tr>
+          <tr><td class="k">Aside (optional)</td><td class="mono">mt-4 pt-3.5 border-t border-border-soft · font-sans 13.5/1.5 ink-2 italic. No InlineProse — pure text.</td></tr>
+        </tbody></table></div>
+        <div class="sub-h">Block data</div>
+        <div class="code">{ kind: <span class="st">"mentalModel"</span>, title: <span class="pr">string</span>, body: <span class="pr">string</span>, aside?: <span class="pr">string</span>, anchorId?: <span class="pr">string</span> }</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       15 · CALLOUT
+       ===================================================== -->
+  <section class="spec" id="callout">
+    <div class="head"><span class="n">15</span><span class="ti">Callout — three tones, one shape</span></div>
+    <p class="intro">Inline aside with a coloured glyph badge. Three tones (info, warn, aside) map to sage, coral, butter. Same dimensions in all three; the tone signals what kind of aside it is.</p>
+
+    <div class="stack" style="margin-bottom: 18px;">
+      <div class="blk-callout info">
+        <div class="glyph">i</div>
+        <div>
+          <div class="ti">Why not just lock?</div>
+          <div class="bd">In a lock-based system, a read takes a shared lock and a write takes an exclusive lock. They wait on each other.</div>
+        </div>
+      </div>
+      <div class="blk-callout warn">
+        <div class="glyph">!</div>
+        <div>
+          <div class="ti">Where this stops being safe</div>
+          <div class="bd">Snapshot isolation is not serializable. Two transactions reading and writing disjoint rows can still produce a state that no serial schedule could.</div>
+        </div>
+      </div>
+      <div class="blk-callout aside">
+        <div class="glyph">·</div>
+        <div>
+          <div class="ti">Aside</div>
+          <div class="bd">Postgres calls these snapshots "MVCC snapshots" internally, but the same idea exists in SQL Server's RCSI and Oracle's read-consistency.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-h">Anatomy</div>
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">Container</td><td class="mono">Card tone={tone} · rounded-2xl · px-5 py-4 · grid-cols-[28px_1fr] gap-3.5</td></tr>
+      <tr><td class="k">Glyph badge</td><td class="mono">24×24 · rounded-full · bg-{accent} · text-bg · centered serif 14/700 glyph</td></tr>
+      <tr><td class="k">Title</td><td class="mono">font-sans 14/700 · color matches accent (sage-ink / coral / butter-ink)</td></tr>
+      <tr><td class="k">Body</td><td class="mono">text-body scaled to 16/1.5 · text-ink · InlineProse</td></tr>
+    </tbody></table></div>
+
+    <div class="sub-h">Tone → tokens</div>
+    <div class="tbl"><table>
+      <thead><tr><th>Tone</th><th>Background</th><th>Glyph bg</th><th>Title color</th><th>Glyph char</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">info</td><td class="mono">bg-sage-bg</td><td class="mono">bg-sage</td><td class="mono">text-sage-ink</td><td>"i"</td></tr>
+        <tr><td class="mono">warn</td><td class="mono">bg-coral-bg</td><td class="mono">bg-coral</td><td class="mono">text-coral</td><td>"!"</td></tr>
+        <tr><td class="mono">aside</td><td class="mono">bg-butter-bg</td><td class="mono">bg-butter-ink</td><td class="mono">text-butter-ink</td><td>"·"</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="sub-h">Block data</div>
+    <div class="code">{ kind: <span class="st">"callout"</span>, tone: <span class="st">"info"</span> | <span class="st">"warn"</span> | <span class="st">"aside"</span>, title: <span class="pr">string</span>, body: <span class="pr">string</span>, anchorId?: <span class="pr">string</span> }</div>
+    <p class="t-caption" style="margin-top: 10px;">"quote" is a fourth tone reserved in the design system (<code class="inline">tone="quote"</code> → bg-surface + ink glyph). Not yet exercised by the prototype but the shape is the same.</p>
+  </section>
+
+  <!-- =====================================================
+       16 · STEP BY STEP
+       ===================================================== -->
+  <section class="spec" id="step-by-step">
+    <div class="head"><span class="n">16</span><span class="ti">StepByStep — ordered procedural walkthrough</span></div>
+    <p class="intro">Numbered surface tiles, one row per step. Used for procedures and traces ("what happens when you UPDATE", "the request lifecycle"). The numbered tile is the consistent signature — never replace with bullets.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="preview-frame bg">
+          <div class="preview-label">Preview · 3 steps</div>
+          <div class="blk-step">
+            <div class="ey coral">Step by step</div>
+            <div class="t-h3" style="margin-top: 8px;">What happens on a single UPDATE</div>
+            <ol>
+              <li>
+                <div class="num">1</div>
+                <div>
+                  <div class="stt">Old tuple stays put</div>
+                  <div class="sbd">Postgres does not overwrite the existing row. Its <span class="e-ref">xmax</span> is stamped with the current transaction's id.</div>
+                </div>
+              </li>
+              <li>
+                <div class="num">2</div>
+                <div>
+                  <div class="stt">New tuple is written</div>
+                  <div class="sbd">A fresh tuple is appended. Its <span class="e-ref">xmin</span> is the current transaction id.</div>
+                </div>
+              </li>
+              <li>
+                <div class="num">3</div>
+                <div>
+                  <div class="stt">VACUUM cleans up later</div>
+                  <div class="sbd">Once no live snapshot can possibly need the old tuple, <span class="e-ref">VACUUM</span> reclaims its space.</div>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">StepByStep</div>
+            <div class="role">teaching</div>
+            <div class="src">bento/views-guided.jsx · function StepByStep</div>
+          </div>
+          <p class="blurb">Card · <code class="inline">surface="default"</code>. Each step renders as a 2-column grid: number tile + content.</p>
+        </div>
+        <div class="sub-h">Anatomy</div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">Card · rounded-2xl · px-6 py-5.5</td></tr>
+          <tr><td class="k">Eyebrow</td><td class="mono">"Step by step" · text-coral</td></tr>
+          <tr><td class="k">Title</td><td class="mono">text-h3 (serif 22/500) · text-ink · mt-2</td></tr>
+          <tr><td class="k">List</td><td class="mono">ol · list-none · grid gap-3.5 · mt-4</td></tr>
+          <tr><td class="k">Step row</td><td class="mono">grid-cols-[32px_1fr] gap-3.5 items-start</td></tr>
+          <tr><td class="k">Number tile</td><td class="mono">28×28 · bg-surface-3 · rounded-lg · mono 12/700 · text-coral-ink · grid-center</td></tr>
+          <tr><td class="k">Step title</td><td class="mono">text-label · font-sans · text-ink · mb-1</td></tr>
+          <tr><td class="k">Step body</td><td class="mono">text-body 16/1.5 (serif) · text-ink-2 · InlineProse</td></tr>
+        </tbody></table></div>
+        <div class="sub-h">Block data</div>
+        <div class="code">{ kind: <span class="st">"stepByStep"</span>, title: <span class="pr">string</span>,
+  steps: { t: <span class="pr">string</span>; b: <span class="pr">string</span> }[],
+  anchorId?: <span class="pr">string</span> }</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       17 · KEY TAKEAWAYS
+       ===================================================== -->
+  <section class="spec" id="key-takeaways">
+    <div class="head"><span class="n">17</span><span class="ti">KeyTakeaways — the inverted slab</span></div>
+    <p class="intro">A black-on-bg slab at the end of a section. Coral eyebrow, coral em-dashes as bullets, serif body in the page background color. Visually heavy by design — it's the punctuation that ends a chapter.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="preview-frame bg">
+          <div class="preview-label">Preview</div>
+          <div class="blk-takeaways">
+            <div class="ey" style="color: var(--color-accent-coral);">Key takeaways</div>
+            <ul>
+              <li>An UPDATE never overwrites — it stamps the old row and appends a new one.</li>
+              <li>The snapshot, not the row, decides what a transaction sees.</li>
+              <li>VACUUM is the only thing standing between live snapshots and disk pressure.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">KeyTakeaways</div>
+            <div class="role ink">teaching</div>
+            <div class="src">bento/views-guided.jsx · function KeyTakeaways</div>
+          </div>
+          <p class="blurb">Card · <code class="inline">surface="ink"</code>. The only block where the eyebrow is coral on dark.</p>
+        </div>
+        <div class="sub-h">Anatomy</div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">bg-ink · text-bg · rounded-2xl · px-6.5 py-5.5</td></tr>
+          <tr><td class="k">Eyebrow</td><td class="mono">text-eyebrow · text-coral (on ink)</td></tr>
+          <tr><td class="k">Bullets</td><td class="mono">grid gap-2.5 · grid-cols-[20px_1fr] · em-dash in mono 700 text-coral pt-1</td></tr>
+          <tr><td class="k">Item</td><td class="mono">text-body 17/1.45 (serif) · text-bg · text-wrap pretty</td></tr>
+        </tbody></table></div>
+        <div class="sub-h">Block data</div>
+        <div class="code">{ kind: <span class="st">"keyTakeaways"</span>, items: <span class="pr">string</span>[], anchorId?: <span class="pr">string</span> }</div>
+        <p class="t-caption" style="margin-top: 10px;">Plain strings — no InlineProse. Takeaways are punchlines, not new exposition.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       18 · COMMON MISCONCEPTION
+       ===================================================== -->
+  <section class="spec" id="misconception">
+    <div class="head"><span class="n">18</span><span class="ti">CommonMisconception — claim → truth</span></div>
+    <p class="intro">A coral-tinted card containing an italic claim followed by a "Actually" panel insetted on white. Two-zone structure makes the rhetorical move explicit: <em>here's what you might believe</em> · <em>here's what's actually true</em>.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="preview-frame bg">
+          <div class="preview-label">Preview</div>
+          <div class="blk blk-misc">
+            <div class="ey coral">Common misconception</div>
+            <div class="claim">"MVCC means writes are free — Postgres just appends a new row."</div>
+            <div class="truth"><span class="t-eyebrow" style="color: var(--color-accent-coral); margin-right: 8px;">Actually</span>Every update doubles the row's physical footprint until VACUUM catches up, and the old tuple's <span class="e-ref">xmax</span> write is a real disk write too.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">CommonMisconception</div>
+            <div class="role coral">teaching</div>
+            <div class="src">bento/views-guided.jsx · function Misconception</div>
+          </div>
+          <p class="blurb">Card · <code class="inline">tone="coral"</code>, with a nested surface card for the "Actually" zone. The italic claim is plain (no InlineProse); the truth zone uses InlineProse.</p>
+        </div>
+        <div class="sub-h">Anatomy</div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">bg-coral-bg · border-border-soft · rounded-2xl · px-6 py-5</td></tr>
+          <tr><td class="k">Eyebrow</td><td class="mono">"Common misconception" · text-coral</td></tr>
+          <tr><td class="k">Claim</td><td class="mono">serif 19/1.3/500 · italic · text-ink · text-wrap pretty · mt-2.5</td></tr>
+          <tr><td class="k">Truth panel</td><td class="mono">mt-3 · bg-surface · rounded-lg · border-l-[3px] border-coral · px-3.5 py-3</td></tr>
+          <tr><td class="k">"Actually" label</td><td class="mono">text-eyebrow · text-coral · mr-2 · inline with body</td></tr>
+          <tr><td class="k">Truth body</td><td class="mono">text-body 16/1.5 (serif) · text-ink · InlineProse</td></tr>
+        </tbody></table></div>
+        <div class="sub-h">Block data</div>
+        <div class="code">{ kind: <span class="st">"misconception"</span>, claim: <span class="pr">string</span>, truth: <span class="pr">string</span>, anchorId?: <span class="pr">string</span> }</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       19 · BEFORE YOU CONTINUE
+       ===================================================== -->
+  <section class="spec" id="before-continue">
+    <div class="head"><span class="n">19</span><span class="ti">BeforeYouContinue — the bridge</span></div>
+    <p class="intro">A butter-tinted card placed at the end of a section to signal "the next thing depends on this; pause if it didn't land". Always has a primary "Continue to §NN · ..." button bound to the next section.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="preview-frame bg">
+          <div class="preview-label">Preview</div>
+          <div class="blk-bc">
+            <div class="ey butter">Before you continue</div>
+            <div class="t-body" style="margin-top: 10px; font-size: 16px;">If "snapshot decides visibility" feels intuitive now — even before you've seen the rules in detail — keep going. If it doesn't, re-read the mental model card above; the next section assumes it.</div>
+            <button class="btn btn-primary" style="margin-top: 14px;">Continue to §02 · Tuple versions <span>→</span></button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="comp">
+          <div class="head-row">
+            <div class="name">BeforeYouContinue</div>
+            <div class="role butter">teaching</div>
+            <div class="src">bento/views-guided.jsx · function BeforeContinue</div>
+          </div>
+          <p class="blurb">Card · <code class="inline">tone="butter"</code>. The continue button uses primary styling (ink) and fires <code class="inline">onSection(next)</code>.</p>
+        </div>
+        <div class="sub-h">Anatomy</div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">bg-butter-bg · border-border-soft · rounded-2xl · px-5.5 py-5</td></tr>
+          <tr><td class="k">Eyebrow</td><td class="mono">"Before you continue" · text-butter-ink</td></tr>
+          <tr><td class="k">Body</td><td class="mono">text-body 16/1.55 (serif) · text-ink · mt-2.5</td></tr>
+          <tr><td class="k">Continue button</td><td class="mono">btn-primary · rounded-pill · "Continue to {n} · {title}" + arrow</td></tr>
+        </tbody></table></div>
+        <div class="sub-h">Block data</div>
+        <div class="code">{ kind: <span class="st">"beforeContinue"</span>, body: <span class="pr">string</span>,
+  next: <span class="pr">string</span>,    <span class="cm">// section id; resolves to {n, title} for the button label</span>
+  anchorId?: <span class="pr">string</span> }</div>
+        <p class="t-caption" style="margin-top: 10px;">If the next-section lookup fails (e.g. report's last section), render without the button. SectionStub uses this block to suggest moving on.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       20 · PROSE / BLOCK HEADING
+       ===================================================== -->
+  <section class="spec" id="prose-heading">
+    <div class="head"><span class="n">20</span><span class="ti">Prose &amp; BlockHeading — the unstyled defaults</span></div>
+    <p class="intro">The two "background" block types. <code class="inline">prose</code> is body text in the reading column; <code class="inline">heading</code> is a serif H2 inside the reading flow (separate from the page H1 the section header owns).</p>
+
+    <div class="grid-2">
+      <div>
+        <div class="preview-frame bg" style="margin-bottom: 8px;">
+          <div class="preview-label">Prose block</div>
+          <div class="t-body">Two ideas have to land before any of the later sections make sense. The first is that <em>every write makes a new row</em>. An UPDATE doesn't change a row in place; it writes a new tuple and marks the old one as superseded.</div>
+        </div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">no wrapper — naked text-body div</td></tr>
+          <tr><td class="k">Type</td><td class="mono">text-body 18/1.62 (serif) · text-ink · text-wrap pretty · InlineProse</td></tr>
+        </tbody></table></div>
+        <div class="code" style="margin-top: 10px;">{ kind: <span class="st">"prose"</span>, body: <span class="pr">string</span>, anchorId?: <span class="pr">string</span> }</div>
+      </div>
+
+      <div>
+        <div class="preview-frame bg" style="margin-bottom: 8px;">
+          <div class="preview-label">Heading block (level 2)</div>
+          <h2 class="t-h2" style="margin: 0;">Two ideas, then one design</h2>
+        </div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">h2 · serif 28/1.2/500 · -0.015em · text-ink · my-2.5</td></tr>
+          <tr><td class="k">Negative margin-bottom</td><td class="mono">mb-[-4px] · so the following block sits closer to the heading than to the previous block</td></tr>
+          <tr><td class="k">Level 3</td><td class="mono">h3 · serif 22/1.25/500 · same idea, half the breathing room</td></tr>
+        </tbody></table></div>
+        <div class="code" style="margin-top: 10px;">{ kind: <span class="st">"heading"</span>, level: 2 | 3, text: <span class="pr">string</span>, anchorId?: <span class="pr">string</span> }</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       21 · SECTION PAGINATION
+       ===================================================== -->
+  <section class="spec" id="pagination">
+    <div class="head"><span class="n">21</span><span class="ti">SectionPagination — prev / next at the foot of the reading column</span></div>
+    <p class="intro">Two tiles, 50/50, at the end of every section's reading column. Previous tile is surface; next tile is ink. The asymmetry is the point — "next" is the design-system-blessed action for the linear reader.</p>
+
+    <div class="grid-2" style="margin-bottom: 14px;">
+      <button style="background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: 14px; padding: 16px 18px; text-align: left; cursor: pointer; font-family: var(--font-sans);">
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-3); letter-spacing: 0.05em;">← Previous</div>
+        <div style="font-family: var(--font-serif); font-size: 17px; color: var(--color-ink); margin-top: 4px;">01 · Foundations</div>
+      </button>
+      <button style="background: var(--color-ink); color: var(--color-bg); border: none; border-radius: 14px; padding: 16px 18px; text-align: left; cursor: pointer; font-family: var(--font-sans);">
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--color-accent-coral); letter-spacing: 0.05em;">Next →</div>
+        <div style="font-family: var(--font-serif); font-size: 17px; margin-top: 4px;">03 · Snapshots</div>
+      </button>
+    </div>
+
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">Tile container</td><td class="mono">rounded-2xl · px-4.5 py-4 · text-left · transition fast</td></tr>
+      <tr><td class="k">Previous · bg</td><td class="mono">bg-surface · border-border-soft · hover bg-surface-2 + translate-x-[-2px]</td></tr>
+      <tr><td class="k">Next · bg</td><td class="mono">bg-ink · text-bg · no border · hover translate-x-[2px]</td></tr>
+      <tr><td class="k">Eyebrow row</td><td class="mono">mono 11/0.05em · ink-3 (prev) / coral (next)</td></tr>
+      <tr><td class="k">Title row</td><td class="mono">serif 17/500 · mt-1 · "{n} · {title}"</td></tr>
+      <tr><td class="k">Empty slot</td><td class="mono">render an empty <code class="inline">&lt;div /&gt;</code> in the missing position — the 50/50 grid must hold.</td></tr>
+    </tbody></table></div>
+
+    <ul class="interactions">
+      <li><span class="trig">click prev</span><span class="eff">Fire <code class="inline">onSection(prev.id)</code> — no anchor.</span></li>
+      <li><span class="trig">click next</span><span class="eff">Fire <code class="inline">onSection(next.id)</code> — no anchor.</span></li>
+      <li><span class="trig">hover prev</span><span class="eff">translateX(-2px) · bg-surface-2.</span></li>
+      <li><span class="trig">hover next</span><span class="eff">translateX(2px) · stays ink — the lean is the only signal.</span></li>
+    </ul>
+  </section>
+
+  <!-- =====================================================
+       22 · ORIENTATION BENTO TILES
+       ===================================================== -->
+  <section class="spec" id="orient-tiles">
+    <div class="head"><span class="n">22</span><span class="ti">Orientation bento — composition tiles</span></div>
+    <p class="intro">The orientation view is a 12-column bento grid of Card primitives. Eight tile types compose the page. None are reused outside orientation, but they're shared across every report — promote them to engine components, not report-local custom.</p>
+
+    <div class="sub-h">Grid contract</div>
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">Page container</td><td class="mono">max-w-[1320px] mx-auto · px-7 py-5 · grid grid-cols-12 gap-3.5 · grid-auto-rows-min</td></tr>
+      <tr><td class="k">Card span</td><td class="mono">Card span prop sets <code class="inline">grid-column: span N</code>. Use 4/5/7/8/12 — never odd values that break alignment.</td></tr>
+      <tr><td class="k">Card padding</td><td class="mono">Default <code class="inline">pad="default"</code> (22 24); hero uses <code class="inline">pad="loose"</code> (34 38).</td></tr>
+    </tbody></table></div>
+
+    <div class="sub-h">Tile catalogue</div>
+    <div class="tbl"><table>
+      <thead><tr><th>Tile</th><th>Span</th><th>Card variant</th><th>What it contains</th><th>Interactions</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="k">HeroTile</td>
+          <td class="mono">8</td>
+          <td class="mono">surface=default, pad=loose</td>
+          <td>Eyebrow ("Topic tutorial · 7 sections · 28 entities · 45 min"), display heading (serif 68/1.0/-0.025), meta deck, primary "Start reading" button + two metadata cells, decorative 3×3 bento corner.</td>
+          <td>Start reading → guided · §01. Decorative grid is static.</td>
+        </tr>
+        <tr>
+          <td class="k">ModesTile</td>
+          <td class="mono">4</td>
+          <td class="mono">surface=default</td>
+          <td>"How to read this" eyebrow + 4 mode rows (Guided, Reference, Synthesis, Graph). Each row: name (sans 14/700), hint, → glyph.</td>
+          <td>Click row → switch to that mode. Hover → bg-sage-bg + border sage.</td>
+        </tr>
+        <tr>
+          <td class="k">WhatYoullLearnTile</td>
+          <td class="mono">5</td>
+          <td class="mono">bg=coral-bg, pad=default</td>
+          <td>"What you'll learn" coral eyebrow + ordered list. Each item: 22×22 coral square with mono 11/700 number tile + serif 16 line.</td>
+          <td>Static. The text is content, not navigation.</td>
+        </tr>
+        <tr>
+          <td class="k">SynthesisPreviewTile</td>
+          <td class="mono">7</td>
+          <td class="mono">surface=default</td>
+          <td>"Synthesis tree" sage eyebrow + "open tree →" ghost link + summary (serif 19/1.42) + grid of 4 root-children mini-cards with a 3px coloured top border (alternates coral/sage/butter-ink/coral).</td>
+          <td>Open tree → synthesis mode. Click any mini-card → synthesis focused on that node.</td>
+        </tr>
+        <tr>
+          <td class="k">RecommendedPathTile</td>
+          <td class="mono">12</td>
+          <td class="mono">surface=default</td>
+          <td>Full-width strip with 7 tile cells. First cell is ink (the start); the rest are surface-2 with a kind-coloured dot in the meta row. Tile: number (mono 11) + title (serif 18/500) + bottom row (dot + kind + time, mono 10).</td>
+          <td>Click tile → guided · that section. Hover → translateY(-2px).</td>
+        </tr>
+        <tr>
+          <td class="k">KeyEntitiesTile</td>
+          <td class="mono">8</td>
+          <td class="mono">surface=default</td>
+          <td>"Key entities" coral eyebrow + "graph view →" ghost link + 3×2 grid of entity cards. Each card: name (mono 13 coral-ink) + type badge (mono 9 ink-3) + shortDef (sans 12 ink-2).</td>
+          <td>Click card → reference focused on entity. Hover → bg-coral-bg, border coral-soft.</td>
+        </tr>
+        <tr>
+          <td class="k">JumpToTile</td>
+          <td class="mono">4</td>
+          <td class="mono">bg=sage-bg, pad=default</td>
+          <td>"Jump to" sage eyebrow + 3 rows: Synthesis tree, Knowledge graph, Glossary &amp; sources. Each row has label (sans 13/700) + hint (sans 11 ink-3) + → arrow (sage).</td>
+          <td>Click → switch to that mode. Hover → translateX(2px).</td>
+        </tr>
+      </tbody>
+    </table></div>
+
+    <p class="t-caption" style="margin-top: 10px;">The hero's decorative 3×3 grid is hand-tuned in <code class="inline">bento/views-orient.jsx</code> — 9 small rounded squares, 6 filled in the three accent colors, 3 outlined. It's a brand mark, not a chart. Keep it.</p>
+  </section>
+
+  <!-- =====================================================
+       23 · SYNTHESIS VIEW
+       ===================================================== -->
+  <section class="spec" id="synth-view">
+    <div class="head"><span class="n">23</span><span class="ti">SynthesisView — focused hierarchy</span></div>
+    <p class="intro">Per §5.5 of REQUIREMENTS.md: synthesis is a parallel structure to the section tree. One node fills the main pane at a time; breadcrumbs trace from root; children render as cards beneath the focus. The NavPanel's Synthesis tab is the persistent map.</p>
+
+    <div class="sub-h">Page structure (top to bottom)</div>
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>Region</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><td class="k">Breadcrumbs</td><td>Slug chain from root to focus. Each crumb (except the last) is a button → focus that ancestor. Separator is "/" in mono 11 ink-4.</td></tr>
+        <tr><td class="mono">2</td><td class="k">Level pill</td><td>Pill with mono "L{n} · {label}" — Root synthesis / Branch synthesis / Leaf node / Sub-leaf. Background uses LEVEL_BG (surface/sage-bg/coral-bg).</td></tr>
+        <tr><td class="mono">3</td><td class="k">"up to {parent}" link</td><td>Ghost mono 11 link. Optional — only if there is a parent.</td></tr>
+        <tr><td class="mono">4</td><td class="k">Title</td><td>Serif 46/1.05/-0.025 · text-wrap balance.</td></tr>
+        <tr><td class="mono">5</td><td class="k">Summary</td><td>Serif 19/1.5 · text-ink-2 · mt-4. Always present.</td></tr>
+        <tr><td class="mono">6</td><td class="k">"What the children share" + "Where they differ"</td><td>Optional pair of cards (sage-bg + coral-bg). Side-by-side at desktop; stack on narrow.</td></tr>
+        <tr><td class="mono">7</td><td class="k">"Take away at this level"</td><td>Optional numbered list (01, 02…) in 20×20 ink tiles + serif body.</td></tr>
+        <tr><td class="mono">8</td><td class="k">"Drill down · N children"</td><td>Auto-fill grid of child cards, min 260px wide. Each card has a 3px left border in the child's level color.</td></tr>
+        <tr><td class="mono">9</td><td class="k">"Contested · uncertain · open"</td><td>Optional butter-bg card with circled-? bullets.</td></tr>
+        <tr><td class="mono">10</td><td class="k">"Drawn from"</td><td>Optional reference list (see Reference list block below).</td></tr>
+        <tr><td class="mono">11</td><td class="k">SiblingPager</td><td>If parent has &gt;1 child, prev/next sibling tiles.</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="sub-h">Level color map</div>
+    <div class="tbl"><table>
+      <thead><tr><th>Level</th><th>Label</th><th>Color (ink)</th><th>Color (bg)</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">0</td><td>Root synthesis</td><td class="mono">text-ink</td><td class="mono">bg-surface</td></tr>
+        <tr><td class="mono">1</td><td>Branch synthesis</td><td class="mono">text-sage / sage-ink</td><td class="mono">bg-sage-bg</td></tr>
+        <tr><td class="mono">2</td><td>Leaf node</td><td class="mono">text-coral / coral-ink</td><td class="mono">bg-coral-bg</td></tr>
+        <tr><td class="mono">3+</td><td>Sub-leaf</td><td class="mono">text-coral-ink</td><td class="mono">bg-surface-2</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="sub-h">Interactions</div>
+    <ul class="interactions">
+      <li><span class="trig">click crumb</span><span class="eff">Focus that ancestor. Smooth scroll to top (handled by ref · <code class="inline">scrollTop = 0</code> in useEffect).</span></li>
+      <li><span class="trig">click "up to {parent}"</span><span class="eff">Focus parent.</span></li>
+      <li><span class="trig">click child card</span><span class="eff">Focus that child. "focus →" label in the card foot is decorative — the whole card is the hit target.</span></li>
+      <li><span class="trig">click reference (section)</span><span class="eff">Fire <code class="inline">onSection(id, anchorId?)</code>. Switch to guided.</span></li>
+      <li><span class="trig">click reference (entity)</span><span class="eff">Fire <code class="inline">onOpenEntity(id)</code>. Switch to reference.</span></li>
+      <li><span class="trig">click reference (source)</span><span class="eff">Switch to reference mode, sources tab.</span></li>
+      <li><span class="trig">click sibling pager</span><span class="eff">Focus the prev/next sibling. Disabled when out of bounds (opacity 0.4, cursor default).</span></li>
+    </ul>
+  </section>
+
+  <!-- =====================================================
+       24 · SYNTHESIS SUB-COMPONENTS
+       ===================================================== -->
+  <section class="spec" id="synth-bits">
+    <div class="head"><span class="n">24</span><span class="ti">Synthesis sub-components — Breadcrumbs, ChildCard, SiblingPager, ReferenceList</span></div>
+    <p class="intro">Four reusable pieces inside SynthesisView. Promote ReferenceList and SiblingPager to engine — both are useful in other views too.</p>
+
+    <div class="grid-2">
+      <div>
+        <div class="comp"><div class="head-row"><div class="name">Breadcrumbs</div><div class="role">synthesis</div></div></div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Row</td><td class="mono">flex items-center gap-2 flex-wrap · mb-4.5</td></tr>
+          <tr><td class="k">Crumb</td><td class="mono">font-mono 11/0.04em · ink-3 (default) · ink-2/700 (current, disabled cursor)</td></tr>
+          <tr><td class="k">Slug</td><td class="mono">First word of node title, lowercased, non-alnum → "-". Root crumb is literal "synthesis".</td></tr>
+          <tr><td class="k">Separator</td><td class="mono">"/" mono 11 ink-4</td></tr>
+        </tbody></table></div>
+      </div>
+
+      <div>
+        <div class="comp"><div class="head-row"><div class="name">ChildCard</div><div class="role">synthesis</div></div></div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">bg-surface · border-border-soft · border-l-[3px] border-l-{levelColor} · rounded-xl · px-4.5 py-4 · grid gap-2.5</td></tr>
+          <tr><td class="k">Head row</td><td class="mono">flex justify-between · mono 10/700/0.08em uppercase — "{idx} · L{n}" left, "{N} children" or "leaf" right</td></tr>
+          <tr><td class="k">Title</td><td class="mono">serif 17/1.2/500 · text-ink</td></tr>
+          <tr><td class="k">Summary</td><td class="mono">sans 12.5/1.45 · ink-2</td></tr>
+          <tr><td class="k">Foot</td><td class="mono">mt-auto · mono 11 levelColor/600 · "focus →"</td></tr>
+          <tr><td class="k">Hover</td><td class="mono">translateY(-2px) + bg-surface-2 · transition fast</td></tr>
+        </tbody></table></div>
+      </div>
+
+      <div>
+        <div class="comp"><div class="head-row"><div class="name">SiblingPager</div><div class="role">synthesis</div></div></div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">mt-10 pt-5.5 · border-t border-border-soft · flex gap-3</td></tr>
+          <tr><td class="k">Tile</td><td class="mono">flex-1 · bg-surface · border-border-soft · rounded-xl · px-4 py-3.5 · text-align matches direction</td></tr>
+          <tr><td class="k">Eyebrow row</td><td class="mono">mono 10/0.1em uppercase · ink-3 · "← previous sibling" / "next sibling →"</td></tr>
+          <tr><td class="k">Title row</td><td class="mono">serif 15/500 · text-ink · mt-1</td></tr>
+          <tr><td class="k">Disabled</td><td class="mono">bg-surface-2 · opacity 0.4 · cursor default</td></tr>
+        </tbody></table></div>
+      </div>
+
+      <div>
+        <div class="comp"><div class="head-row"><div class="name">ReferenceList</div><div class="role">shared</div></div></div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Header</td><td class="mono">"Drawn from" eyebrow · count on the right (mono 11 ink-3)</td></tr>
+          <tr><td class="k">Row</td><td class="mono">bg-surface · border-border-soft · rounded-md · px-3.5 py-2.5 · flex gap-3.5</td></tr>
+          <tr><td class="k">Kind label</td><td class="mono">w-16 · mono 9/700/0.1em uppercase — section/entity/source. Color from kind: sage / coral / butter-ink.</td></tr>
+          <tr><td class="k">Body</td><td class="mono">flex-1 · label (sans 13.5/600) · sub (serif 12 ink-3 OR mono 12 ink-3 if kind=source)</td></tr>
+          <tr><td class="k">Hit chip</td><td class="mono">mono 9/0.08em uppercase · bg-surface-2 · rounded-pill · px-2 — entity type / source kind / "§NN" anchor</td></tr>
+          <tr><td class="k">Arrow</td><td class="mono">colored to match kind color</td></tr>
+          <tr><td class="k">Hover</td><td class="mono">border color → kind color · bg-surface-2</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       25 · REFERENCE VIEW
+       ===================================================== -->
+  <section class="spec" id="ref-view">
+    <div class="head"><span class="n">25</span><span class="ti">ReferenceView — glossary + sources</span></div>
+    <p class="intro">Two-column page: list on the left, sticky entity-detail panel on the right. A pill-track tab switches the left list between Entities and Sources.</p>
+
+    <div class="sub-h">Page layout</div>
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">Wrapper</td><td class="mono">flex · px-10 pt-8 pb-24 · gap-6 · overflow-auto · h-[calc(100vh-60px)]</td></tr>
+      <tr><td class="k">Left column</td><td class="mono">flex-1 · min-w-0</td></tr>
+      <tr><td class="k">Right column</td><td class="mono">w-[380px] · flex-shrink-0 · sticky top-20 inside the column</td></tr>
+      <tr><td class="k">Page title</td><td class="mono">"Glossary &amp; sources" · text-h1 (serif 40)</td></tr>
+      <tr><td class="k">Tab track</td><td class="mono">bg-surface · rounded-pill · border-border-soft · p-1 · w-fit · contains 2 segments: "Entities · N" / "Sources · N"</td></tr>
+    </tbody></table></div>
+
+    <div class="sub-h">Entity list (left, when tab="entities")</div>
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">Layout</td><td class="mono">grid gap-2 — full alphabetical list (V1; sorting + by-type grouping is V1.x)</td></tr>
+      <tr><td class="k">Row</td><td class="mono">bg-surface · border-border-soft · rounded-xl · px-4 py-3.25 · cursor pointer</td></tr>
+      <tr><td class="k">Row · active</td><td class="mono">bg-coral-bg · border-coral</td></tr>
+      <tr><td class="k">Row head</td><td class="mono">flex justify-between baseline — name (mono 14/600 coral-ink) left, type badge (mono 10/0.08em ink-3) right</td></tr>
+      <tr><td class="k">Row def</td><td class="mono">serif 14.5 · ink-2 · mt-1.25 · text-wrap pretty</td></tr>
+      <tr><td class="k">Hover (inactive)</td><td class="mono">bg → bg-surface-2 · transition fast</td></tr>
+    </tbody></table></div>
+
+    <div class="sub-h">Source list (left, when tab="sources")</div>
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">Row</td><td class="mono">bg-surface · border-border-soft · rounded-xl · px-4 py-3.25 · non-interactive</td></tr>
+      <tr><td class="k">Row head</td><td class="mono">title (sans 14/700 ink) left, kind badge (mono 10/0.08em ink-3) right</td></tr>
+      <tr><td class="k">Sub</td><td class="mono">mono 12 · text-sage · the path or host</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- =====================================================
+       26 · ENTITY DETAIL PANEL
+       ===================================================== -->
+  <section class="spec" id="entity-detail">
+    <div class="head"><span class="n">26</span><span class="ti">EntityDetailPanel — the right-side detail</span></div>
+    <p class="intro">The right column of ReferenceView. Sticky to the top of the page; shows the focused entity's definition, two action buttons, and its relationship list. Shows a tip card when no entity is focused.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="sub-h">Anatomy (focused state)</div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">sticky top-20 · bg-surface · border-border-soft · rounded-2xl · px-6 py-5.5</td></tr>
+          <tr><td class="k">Top row</td><td class="mono">flex justify-between · type badge (mono 11/0.08em uppercase ink-3) left · close × button right (subtle icon)</td></tr>
+          <tr><td class="k">Name</td><td class="mono">mono 22/600 · text-coral-ink</td></tr>
+          <tr><td class="k">Short def</td><td class="mono">serif 16/1.55 · text-ink · mt-3 · text-wrap pretty</td></tr>
+          <tr><td class="k">Primary CTA</td><td class="mono">"Open {n} · {title}" · btn-primary · rounded-lg (not pill — full-width works better at radius-lg) · mt-4 · w-full</td></tr>
+          <tr><td class="k">Graph CTA</td><td class="mono">"See in knowledge graph" · btn-secondary · graph SVG glyph · mt-2 · w-full</td></tr>
+          <tr><td class="k">Relationships</td><td class="mono">mt-4.5 pt-3.5 border-t border-border-soft · eyebrow "Relationships"</td></tr>
+          <tr><td class="k">Relationship row</td><td class="mono">mono 12 ink-2 · padding-y-1 · "{type} → {other.name}" (outgoing) or "{other.name} → {type} (this)" (incoming)</td></tr>
+        </tbody></table></div>
+
+        <div class="sub-h">Anatomy (empty state — no focus)</div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Container</td><td class="mono">bg-sage-bg · border-dashed border-border-hi · rounded-2xl · px-6 py-5.5</td></tr>
+          <tr><td class="k">Eyebrow</td><td class="mono">"Tip" · text-sage</td></tr>
+          <tr><td class="k">Body</td><td class="mono">serif 16/1.5 · mt-2 · explains the click affordance</td></tr>
+        </tbody></table></div>
+
+        <div class="sub-h">Interactions</div>
+        <ul class="interactions">
+          <li><span class="trig">click entity row</span><span class="eff">Fire <code class="inline">onFocusEntity(id)</code>. Right panel re-renders.</span></li>
+          <li><span class="trig">click × button</span><span class="eff">Fire <code class="inline">onFocusEntity(null)</code>. Falls back to empty-state.</span></li>
+          <li><span class="trig">click "Open §..."</span><span class="eff">Fire <code class="inline">onSection(primarySection)</code> · switch to guided.</span></li>
+          <li><span class="trig">click "See in graph"</span><span class="eff"><code class="inline">window.__openGraph(id, "spotlight")</code>.</span></li>
+          <li><span class="trig">click relationship row</span><span class="eff">Fire <code class="inline">onFocusEntity(other.id)</code> — same panel, new entity. Use the same click pattern for inbound and outbound; the "(this)" tag clarifies direction.</span></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="preview-frame bg">
+          <div class="preview-label">Preview · entity focused</div>
+          <div style="background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-2xl); padding: 22px 24px; max-width: 360px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+              <span style="font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-3); letter-spacing: 0.08em; text-transform: uppercase;">concept</span>
+              <button style="background: transparent; border: none; cursor: pointer; color: var(--color-ink-3); font-size: 18px; line-height: 1;">×</button>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 22px; color: var(--color-accent-coral-ink); font-weight: 600;">snapshot</div>
+            <div style="font-family: var(--font-serif); font-size: 16px; line-height: 1.55; color: var(--color-ink); margin-top: 12px;">The set of transaction ids a backend considers committed at the moment of its query. The snapshot decides which row versions a SELECT can see.</div>
+            <button class="btn btn-primary" style="margin-top: 16px; width: 100%; justify-content: space-between; border-radius: 10px;">
+              <span>Open 01 · Foundations</span>
+              <span>→</span>
+            </button>
+            <button class="btn btn-secondary" style="margin-top: 8px; width: 100%; justify-content: space-between; border-radius: 10px;">
+              <span>See in knowledge graph</span>
+              <span>→</span>
+            </button>
+            <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--color-border-soft);">
+              <div class="ey">Relationships</div>
+              <div style="margin-top: 8px; display: grid; gap: 6px; font-family: var(--font-mono); font-size: 12px;">
+                <div><span style="color: var(--color-accent-coral);">visible-via</span> <span style="color: var(--color-ink-4);">→</span> <span style="color: var(--color-accent-coral-ink); font-weight: 600;">xmin</span></div>
+                <div><span style="color: var(--color-accent-coral-ink); font-weight: 600;">MVCC</span> <span style="color: var(--color-ink-4);">→</span> <span style="color: var(--color-accent-coral);">depends-on</span> <span style="color: var(--color-ink-4); font-style: italic;">(this)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       27 · GRAPH VIEW
+       ===================================================== -->
+  <section class="spec" id="graph-view">
+    <div class="head"><span class="n">27</span><span class="ti">GraphView — Atlas, Spotlight, Regions</span></div>
+    <p class="intro">One main pane, three layout modes, one shared header. The mode is persisted; the focus is transient (the shell decides whether to set it based on how the user got here). The graph view is SVG — no react-flow required for V1.</p>
+
+    <div class="sub-h">Header</div>
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">Title</td><td class="mono">"Knowledge graph" · text-h1 (serif 44)</td></tr>
+      <tr><td class="k">Deck</td><td class="mono">serif 17/1.5 ink-2 · explains what the three modes do</td></tr>
+      <tr><td class="k">ModeSwitcher</td><td class="mono">Pill-track segmented control (see §10) · each segment shows label (sans 13) + hint (mono 9 uppercase) stacked</td></tr>
+    </tbody></table></div>
+
+    <div class="sub-h">Atlas mode — the full graph</div>
+    <div class="tbl"><table>
+      <thead><tr><th>Part</th><th>Tokens · behaviour</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Canvas</td><td class="mono">bg-surface · rounded-2xl · border-border-soft · shadow-sm · overflow-hidden</td></tr>
+        <tr><td class="k">Viewbox</td><td class="mono">1000 × 580 · responsive width</td></tr>
+        <tr><td class="k">Toolbar</td><td class="mono">bg-surface-2 · border-b border-border-soft · px-4 py-3 · flex flex-wrap gap-2.5 — search input, type filter chips, edge-strength chips, count readout right-aligned</td></tr>
+        <tr><td class="k">Search</td><td class="mono">"search entities…" · case-insensitive substring match — hides non-matching nodes. ×-clear button when populated.</td></tr>
+        <tr><td class="k">Type chips</td><td class="mono">concept · pattern · feature · file — toggle visibility per type. Inactive chip: muted bg, active: type color tint.</td></tr>
+        <tr><td class="k">Strength chips</td><td class="mono">weak+ / medium+ / strong+ — minimum strength threshold. Single-select.</td></tr>
+        <tr><td class="k">Layout</td><td class="mono">forceLayout · iters 320 · seed 19 (deterministic; see bento/graph-layout.js).</td></tr>
+        <tr><td class="k">Node</td><td class="mono">radius = 8 + sqrt(degree)·2.4 · fill = bg of entity type · stroke = type color · text label below at mono 11/500</td></tr>
+        <tr><td class="k">Node (focus)</td><td class="mono">extra dashed outer ring (r+7) · stroke ink · 1px dashed</td></tr>
+        <tr><td class="k">Edge</td><td class="mono">line · stroke ink · width + opacity from STRENGTH map (weak 0.9/0.28, medium 1.25/0.5, strong 1.75/0.78)</td></tr>
+        <tr><td class="k">Highlight (hover/focus)</td><td class="mono">non-related nodes drop to opacity 0.22 · edges incident to highlight pop to full strength · others to opacity 0.06</td></tr>
+        <tr><td class="k">Edge labels</td><td class="mono">on highlight only · mono 10 ink-2 in a bg-bg rect with border-border-soft · centered on edge midpoint</td></tr>
+        <tr><td class="k">Legend</td><td class="mono">small floating card at bottom-left of the canvas with the four type swatches + edge-strength swatches</td></tr>
+        <tr><td class="k">FocusCard</td><td class="mono">when focus is set, a small entity card floats top-right of the canvas with name, def, "open in reference" + "open primary section" buttons</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="sub-h">Spotlight mode — BFS rings around a focus</div>
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">Viewbox</td><td class="mono">880 × 580</td></tr>
+      <tr><td class="k">Layout</td><td class="mono">BFS from focusId · ring radii [0, 130, 230, 310] · alternating ring offsets (±0.18 rad) to break collinearity</td></tr>
+      <tr><td class="k">Max-hops control</td><td class="mono">number input or +/- stepper at the top — clamps to 1–3 typical · default 2</td></tr>
+      <tr><td class="k">Trail</td><td class="mono">stack of previously-focused ids — each click pushes; back-arrow pops. Renders as a breadcrumb chip strip above the canvas.</td></tr>
+      <tr><td class="k">Node</td><td class="mono">same as Atlas · center node has the dashed focus ring</td></tr>
+      <tr><td class="k">Click node</td><td class="mono">fires onGraphFocus(id) · trail is appended · BFS re-runs</td></tr>
+    </tbody></table></div>
+
+    <div class="sub-h">Regions mode — group by section kind</div>
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">Layout</td><td class="mono">Each section becomes a region tile. Tile background uses SECTION_REGION_TINT (Concept→coral, Mechanism/Contract→sage, Maintenance→butter, Advanced→coral).</td></tr>
+      <tr><td class="k">Tile</td><td class="mono">rounded-2xl with kind ring border · header with section number + title · inner SVG laying out only that section's entities · cross-region edges drawn between tiles as dashed coral leaders</td></tr>
+      <tr><td class="k">Click entity inside tile</td><td class="mono">switches to Spotlight on that entity, OR opens it in Reference — pick one in production and document it. The prototype goes to Spotlight.</td></tr>
+    </tbody></table></div>
+
+    <div class="sub-h">Toolbar chip helpers</div>
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">kgChip(active, color)</td><td class="mono">bg-surface (inactive) / type bg tint (active) · border-border-soft · rounded-md · px-2 py-1 · mono 11 · cursor pointer</td></tr>
+      <tr><td class="k">kgGroupLabel</td><td class="mono">mono 10/0.1em uppercase · ink-3 · grouping word between chip clusters ("edges", "types"…)</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- =====================================================
+       28 · MINI GRAPH
+       ===================================================== -->
+  <section class="spec" id="mini-graph">
+    <div class="head"><span class="n">28</span><span class="ti">MiniGraph — embedded sub-graph</span></div>
+    <p class="intro">A small force-laid sub-graph that renders inside section headers and the right rail. Shows a focused set of entities + (optionally) one-hop external neighbours as ghost halo nodes with dashed leaders.</p>
+
+    <div class="grid-spec">
+      <div>
+        <div class="comp">
+          <div class="head-row"><div class="name">MiniGraph</div><div class="role">embeddable</div><div class="src">bento/graph-mini.jsx</div></div>
+          <p class="blurb">Pure SVG. Deterministic layout (hash-seeded). No toolbar; clicks bubble out via <code class="inline">onOpenGraph</code> to the full GraphView.</p>
+        </div>
+
+        <div class="sub-h">Props</div>
+        <div class="tbl"><table>
+          <thead><tr><th>Prop</th><th>Type</th><th>Effect</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">entityIds</td><td class="mono">string[]</td><td>Primary entities (rendered as internal nodes).</td></tr>
+            <tr><td class="mono">width / height</td><td class="mono">number</td><td>SVG viewBox. Sticks to its aspect; CSS scales width 100%.</td></tr>
+            <tr><td class="mono">focusId</td><td class="mono">string?</td><td>If set, that node renders as the centre — larger, ink fill, coral stroke, dashed focus ring.</td></tr>
+            <tr><td class="mono">showExternal</td><td class="mono">boolean</td><td>Whether to render one-hop external neighbours as halo nodes.</td></tr>
+            <tr><td class="mono">compact</td><td class="mono">boolean</td><td>Denser typography / smaller padding — use in right-rail.</td></tr>
+            <tr><td class="mono">onOpenGraph</td><td class="mono">(id) =&gt; void</td><td>Fired on node click. Wire to the shell's openGraph(id, "spotlight").</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="sub-h">Visual rules</div>
+        <div class="tbl"><table><tbody>
+          <tr><td class="k">Internal node</td><td class="mono">fill bg-surface · stroke = entity-type color · radius 6 / 8 (compact)</td></tr>
+          <tr><td class="k">Focus node</td><td class="mono">fill ink · stroke coral · radius 12 / 14 (compact)</td></tr>
+          <tr><td class="k">External node</td><td class="mono">fill bg-bg · stroke = type color @ 0.55 opacity · radius 4.5 / 5.5</td></tr>
+          <tr><td class="k">Internal edge</td><td class="mono">stroke ink @ 0.32 · width 1</td></tr>
+          <tr><td class="k">External edge</td><td class="mono">stroke coral @ 0.55 · width 1 · dasharray 3 3</td></tr>
+          <tr><td class="k">Node label</td><td class="mono">below node · mono 9 / 8 (compact) · ink-3 for externals, ink for internals</td></tr>
+        </tbody></table></div>
+      </div>
+
+      <div>
+        <div class="preview-frame bg">
+          <div class="preview-label">Preview · 3 internal + 4 external halo</div>
+          <svg viewBox="0 0 280 160" style="width: 100%; height: auto; background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-lg);">
+            <!-- external edges -->
+            <line x1="140" y1="80" x2="40" y2="20" stroke="var(--color-accent-coral)" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="3 3"/>
+            <line x1="180" y1="60" x2="240" y2="20" stroke="var(--color-accent-coral)" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="3 3"/>
+            <line x1="100" y1="100" x2="40" y2="140" stroke="var(--color-accent-coral)" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="3 3"/>
+            <line x1="180" y1="100" x2="240" y2="140" stroke="var(--color-accent-coral)" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="3 3"/>
+            <!-- internal edges -->
+            <line x1="140" y1="80" x2="100" y2="100" stroke="var(--color-ink)" stroke-opacity="0.32" stroke-width="1"/>
+            <line x1="140" y1="80" x2="180" y2="60" stroke="var(--color-ink)" stroke-opacity="0.32" stroke-width="1"/>
+            <line x1="180" y1="60" x2="180" y2="100" stroke="var(--color-ink)" stroke-opacity="0.32" stroke-width="1"/>
+            <!-- external nodes -->
+            <circle cx="40" cy="20" r="5" fill="var(--color-bg)" stroke="var(--color-accent-coral)" stroke-opacity="0.55" stroke-width="1.2"/>
+            <circle cx="240" cy="20" r="5" fill="var(--color-bg)" stroke="var(--color-accent-sage)" stroke-opacity="0.55" stroke-width="1.2"/>
+            <circle cx="40" cy="140" r="5" fill="var(--color-bg)" stroke="var(--color-accent-butter-ink)" stroke-opacity="0.55" stroke-width="1.2"/>
+            <circle cx="240" cy="140" r="5" fill="var(--color-bg)" stroke="var(--color-accent-coral)" stroke-opacity="0.55" stroke-width="1.2"/>
+            <!-- focus + internal -->
+            <circle cx="140" cy="80" r="20" fill="none" stroke="var(--color-ink)" stroke-width="1" stroke-dasharray="2 3"/>
+            <circle cx="140" cy="80" r="14" fill="var(--color-ink)" stroke="var(--color-accent-coral)" stroke-width="2"/>
+            <text x="140" y="108" text-anchor="middle" style="font-family: var(--font-mono); font-size: 9px; fill: var(--color-ink);">MVCC</text>
+            <circle cx="100" cy="100" r="7" fill="var(--color-surface)" stroke="var(--color-accent-coral)" stroke-width="1.4"/>
+            <text x="100" y="118" text-anchor="middle" style="font-family: var(--font-mono); font-size: 9px; fill: var(--color-ink);">snapshot</text>
+            <circle cx="180" cy="60" r="7" fill="var(--color-surface)" stroke="var(--color-accent-coral)" stroke-width="1.4"/>
+            <text x="180" y="78" text-anchor="middle" style="font-family: var(--font-mono); font-size: 9px; fill: var(--color-ink);">xmin</text>
+            <circle cx="180" cy="100" r="7" fill="var(--color-surface)" stroke="var(--color-accent-coral)" stroke-width="1.4"/>
+            <text x="180" y="118" text-anchor="middle" style="font-family: var(--font-mono); font-size: 9px; fill: var(--color-ink);">xmax</text>
+          </svg>
+        </div>
+
+        <div class="preview-frame" style="margin-top: 10px;">
+          <div class="preview-label">SectionHeaderGraph (wrapper)</div>
+          <div class="t-body" style="font-size: 16px;">Used at the top of a guided section between summary and first block. Same MiniGraph + a small legend on the right ("in section" / "links elsewhere"). See <code class="inline">SectionHeaderGraph</code> in <code class="inline">bento/views-guided.jsx</code>.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-h">Shared layout helpers</div>
+    <p class="t-body">Both MiniGraph and GraphView consume <code class="inline">GraphLayout</code> from <code class="inline">bento/graph-layout.js</code>. Move it to <code class="inline">packages/engine/kg/layout.ts</code> in production. The three functions used are:</p>
+    <div class="tbl"><table><tbody>
+      <tr><td class="k">forceLayout(nodes, edges, w, h, opts)</td><td>Returns <code class="inline">{[id]: {x, y}}</code>. Opts: seed, iters, pad, kScale.</td></tr>
+      <tr><td class="k">degreeMap(nodes, edges)</td><td>id → number, used to size Atlas nodes.</td></tr>
+      <tr><td class="k">neighborsOf(edges, id)</td><td>Set of one-hop neighbor ids — used by Spotlight's BFS and Atlas's highlight.</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <!-- =====================================================
+       29 · ACCESSIBILITY
+       ===================================================== -->
+  <section class="spec" id="a11y">
+    <div class="head"><span class="n">29</span><span class="ti">Accessibility — what the prototype skipped that you must add</span></div>
+    <p class="intro">The prototype was visual-first. Production has to land these.</p>
+
+    <div class="tbl"><table>
+      <thead><tr><th>Concern</th><th>Resolution</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Focus rings</td><td>Every interactive element gets a <code class="inline">focus-visible:outline-2 outline-offset-2 outline-sage</code>. The prototype removes browser defaults; production must put them back.</td></tr>
+        <tr><td class="k">EntityRef</td><td>Use Radix Popover, not hand-rolled portal. Radix gives keyboard, escape-to-close, and focus management for free.</td></tr>
+        <tr><td class="k">Tabs (mode switchers)</td><td>Use Radix Tabs. Arrow keys move within the track; Enter activates. The hand-rolled buttons in the prototype don't.</td></tr>
+        <tr><td class="k">Nav tree</td><td>ARIA tree pattern: <code class="inline">role="tree"</code>, items <code class="inline">role="treeitem"</code> with <code class="inline">aria-expanded</code> and <code class="inline">aria-level</code>. Arrow keys: up/down move, right expands, left collapses.</td></tr>
+        <tr><td class="k">Pagination tiles</td><td>Wrap in <code class="inline">&lt;nav aria-label="Section navigation"&gt;</code>. The "next" button needs an accessible name beyond just "Next →" — include the section number.</td></tr>
+        <tr><td class="k">Graph</td><td>SVG nodes get <code class="inline">role="button"</code> and <code class="inline">aria-label={entity.name}</code>. Provide a sibling text list view (a hidden <code class="inline">&lt;ul&gt;</code> the screen reader uses).</td></tr>
+        <tr><td class="k">Color-only signals</td><td>Type chip colour and edge strength must not be the only signal. Add a small text glyph in the chip on monochrome / high-contrast.</td></tr>
+        <tr><td class="k">Reduced motion</td><td>Wrap <code class="inline">--motion-*</code> consumers in <code class="inline">@media (prefers-reduced-motion: reduce)</code> — drop durations to 0, keep state changes.</td></tr>
+        <tr><td class="k">Keyboard hint strip</td><td>The decorative bottom-centre kbd strip needs <code class="inline">aria-hidden="true"</code>; the real shortcut list lives in a hidden help dialog (V1.x), tabbable from "?".</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- =====================================================
+       30 · BUILD ORDER
+       ===================================================== -->
+  <section class="spec" id="impl">
+    <div class="head"><span class="n">30</span><span class="ti">Suggested build order</span></div>
+    <p class="intro">Five milestones, each producing something runnable. Mirrors §15 of DESIGN.md.</p>
+
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>Milestone</th><th>What's in</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">M1</td><td class="k">Foundations</td><td>Tokens (light + dark), Tailwind config with forbid-arbitrary plugin, <code class="inline">cn()</code> + <code class="inline">cva()</code> helpers, Card primitive, Eyebrow / Dot / InlineTag / Buttons + Tabs, Storybook scaffolded.</td></tr>
+        <tr><td class="mono">M2</td><td class="k">Reading column</td><td>InlineProse, all 9 block kinds (ConceptIntro · MentalModel · Callout · StepByStep · KeyTakeaways · CommonMisconception · BeforeYouContinue · Prose · BlockHeading), SectionPagination, GuidedView with anchor + IntersectionObserver, AppShell + TopBar + NavPanel (Sections tab only).</td></tr>
+        <tr><td class="mono">M3</td><td class="k">Knowledge graph</td><td>Entity/Relationship schemas, EntityRef + HoverCard (via Radix Popover), ReferenceView + EntityDetailPanel, GraphLayout port, MiniGraph, GraphView (Atlas first, Spotlight + Regions next), SectionHeaderGraph, RightRail.</td></tr>
+        <tr><td class="mono">M4</td><td class="k">Synthesis</td><td>SynthesisNode schema, SynthesisView + ChildCard + SiblingPager + ReferenceList + Breadcrumbs, NavPanel Synthesis tab.</td></tr>
+        <tr><td class="mono">M5</td><td class="k">Orientation + polish</td><td>OrientationView with all 8 bento tiles, keyboard shortcuts, localStorage persistence, validation hooks (dangling refs · custom manifest), a11y pass (focus, tree pattern, reduced motion), Storybook story coverage check.</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="sub-h">Validation hooks to ship with M3+</div>
+    <ul class="interactions">
+      <li><span class="trig">Dangling EntityRef</span><span class="eff">Scan every block <code class="inline">body</code> string for <code class="inline">&lt;e id="X"&gt;</code> tags; fail if X not in <code class="inline">kg.entities</code>.</span></li>
+      <li><span class="trig">Missing primarySection</span><span class="eff">Every entity with <code class="inline">primarySection</code> must reference an extant section id.</span></li>
+      <li><span class="trig">Dangling relationship endpoint</span><span class="eff">from / to must both resolve.</span></li>
+      <li><span class="trig">Missing anchorId target</span><span class="eff">If a NavPanel subsection points to <code class="inline">childId</code>, some block must declare <code class="inline">anchorId: childId</code>.</span></li>
+      <li><span class="trig">Bad orientation path</span><span class="eff">Every id in <code class="inline">orientation.recommendedPath</code> must be an extant section.</span></li>
+      <li><span class="trig">Custom component manifest</span><span class="eff">Every <code class="inline">CustomBlock</code> componentName must have a file under <code class="inline">reports/&lt;name&gt;/custom/</code> and a matching <code class="inline">customComponents</code> manifest entry.</span></li>
+    </ul>
+
+    <div class="sub-h">Tokens checklist (block by block)</div>
+    <p class="t-body">Before merging M2, verify every block uses only design-system tokens. Run a grep for raw hex (<code class="inline">#[0-9A-F]{3,6}</code>), raw oklch outside design-tokens/, and any utility class that isn't in §08 of the design system. The prototype freely uses inline style objects — none of that should survive the port.</p>
+  </section>
+
+  <footer>
+    Trellis component-library handoff · v0.1 · derived from <span style="color: var(--color-ink-2);">bento/*</span> + <span style="color: var(--color-ink-2);">spec/REQUIREMENTS.md</span> + <span style="color: var(--color-ink-2);">spec/DESIGN.md</span>. Pair with <span style="color: var(--color-ink-2);">Trellis Design System.html</span> for token values.
+  </footer>
+
+</main>
+</div>
+</body>
+</html>
