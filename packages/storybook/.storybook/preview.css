@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@config "@trellis/engine/design-tokens/tailwind.preset";
+@source "../stories/**/*.{ts,tsx}";
+@source "../../engine/src/components/**/*.{ts,tsx}";
+
+html,
+body,
+#storybook-root {
+  min-height: 100%;
+  background: var(--color-bg);
+  color: var(--color-ink);
+}

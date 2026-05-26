@@ -1,0 +1,20 @@
+{
+  "name": "trellis",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "dev": "node ./scripts/dev.mjs",
+    "build": "node ./scripts/build.mjs",
+    "validate": "pnpm --filter @trellis/engine exec tsx src/cli/validate.ts",
+    "scaffold-report": "sh -c 'if pnpm --filter @trellis/engine exec sh -c \"command -v trellis-scaffold-report >/dev/null\" >/dev/null 2>&1; then pnpm --filter @trellis/engine exec trellis-scaffold-report \"$@\"; else pnpm --filter @trellis/engine exec tsx src/cli/scaffold.ts \"$@\"; fi' --",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "storybook": "pnpm --filter @trellis/storybook dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

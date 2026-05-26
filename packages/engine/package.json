@@ -1,0 +1,92 @@
+{
+  "name": "@trellis/engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./design-tokens": {
+      "types": "./src/design-tokens/index.ts",
+      "default": "./src/design-tokens/index.ts"
+    },
+    "./design-tokens/tokens.css": "./src/design-tokens/tokens.css",
+    "./design-tokens/tailwind.preset": {
+      "types": "./src/design-tokens/tailwind.preset.ts",
+      "default": "./src/design-tokens/tailwind.preset.ts"
+    },
+    "./kg": {
+      "types": "./src/kg/index.ts",
+      "default": "./src/kg/index.ts"
+    },
+    "./schemas": {
+      "types": "./src/schemas/index.ts",
+      "default": "./src/schemas/index.ts"
+    },
+    "./components/primitives": {
+      "types": "./src/components/primitives/index.ts",
+      "default": "./src/components/primitives/index.ts"
+    },
+    "./components/inline": {
+      "types": "./src/components/inline/index.ts",
+      "default": "./src/components/inline/index.ts"
+    },
+    "./components/blocks": {
+      "types": "./src/components/blocks/index.ts",
+      "default": "./src/components/blocks/index.ts"
+    },
+    "./components/shell": {
+      "types": "./src/components/shell/index.ts",
+      "default": "./src/components/shell/index.ts"
+    },
+    "./components/graph": {
+      "types": "./src/components/graph/index.ts",
+      "default": "./src/components/graph/index.ts"
+    }
+  },
+  "bin": {
+    "trellis-validate": "./src/cli/validate.ts",
+    "trellis-scaffold-report": "./src/cli/scaffold.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "validate": "trellis-validate",
+    "scaffold-report": "trellis-scaffold-report"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@fontsource/source-serif-4": "^5.2.8",
+    "@radix-ui/react-hover-card": "^1.1.15",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@xyflow/react": "^12.10.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "d3-force": "^3.0.0",
+    "dagre": "^0.8.5",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "tailwind-merge": "^3.4.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/d3-force": "^3.0.10",
+    "@types/dagre": "^0.7.54",
+    "@types/node": "^25.0.0",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^29.1.1",
+    "tailwindcss": "^4.1.17",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

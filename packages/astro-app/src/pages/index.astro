@@ -1,0 +1,11 @@
+---
+import { AppShell } from "@trellis/engine/components/shell";
+import Base from "../layouts/Base.astro";
+import { loadSelectedReport } from "../report-loader";
+
+const report = await loadSelectedReport();
+---
+
+<Base title={`Trellis - ${report.id}`}>
+  <AppShell report={report} client:load />
+</Base>

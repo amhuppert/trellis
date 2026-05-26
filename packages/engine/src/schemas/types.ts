@@ -1,0 +1,27 @@
+import { z } from "zod";
+import { BlockSchema, InlineProseStringSchema } from "./block";
+import { CustomManifestSchema } from "./custom-manifest";
+import { EntitySchema, EntityTypeSchema, KnowledgeGraphSchema, RelationshipSchema } from "./kg";
+import { OrientationSchema } from "./orientation";
+import { AuthorSchema, ReportConfigSchema } from "./report-config";
+import { OutlineNodeSchema, SectionKindSchema, SectionSchema } from "./section";
+import { SourceReferenceSchema } from "./source";
+import { ReferenceSchema, SynthesisNodeSchema, SynthesisRootSchema } from "./synthesis";
+
+export type InlineProseString = z.infer<typeof InlineProseStringSchema>;
+export type Block = z.infer<typeof BlockSchema>;
+export type CustomManifest = z.infer<typeof CustomManifestSchema>;
+export type EntityType = z.infer<typeof EntityTypeSchema>;
+export type Entity = z.infer<typeof EntitySchema>;
+export type Relationship = z.infer<typeof RelationshipSchema>;
+export type KnowledgeGraph = z.infer<typeof KnowledgeGraphSchema>;
+export type Orientation = z.infer<typeof OrientationSchema>;
+export type Author = z.infer<typeof AuthorSchema>;
+export type ReportConfig = z.infer<typeof ReportConfigSchema>;
+export type OutlineNode = z.infer<typeof OutlineNodeSchema>;
+export type SectionKind = z.infer<typeof SectionKindSchema>;
+export type Section = z.infer<typeof SectionSchema>;
+export type SourceReference = z.infer<typeof SourceReferenceSchema>;
+export type Reference = z.infer<typeof ReferenceSchema>;
+export type SynthesisNode = z.infer<typeof SynthesisNodeSchema>;
+export type SynthesisRoot = z.infer<typeof SynthesisRootSchema>;

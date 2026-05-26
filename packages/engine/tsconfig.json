@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "@trellis/engine": ["packages/engine/src/index.ts"],
+      "@trellis/engine/*": ["packages/engine/src/*"]
+    }
+  },
+  "include": ["src"]
+}

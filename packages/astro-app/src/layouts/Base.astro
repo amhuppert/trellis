@@ -1,0 +1,21 @@
+---
+import "../styles/global.css";
+
+type Props = {
+  title?: string;
+};
+
+const { title = "Trellis" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="bg-bg text-ink">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen bg-bg text-ink font-sans">
+    <slot />
+  </body>
+</html>

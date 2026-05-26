@@ -1,0 +1,13 @@
+{
+  "preMergeCommand": "pnpm install --frozen-lockfile && pnpm typecheck && pnpm lint && pnpm test",
+  "devServers": [
+    {
+      "name": "astro",
+      "command": ".cc/dev-servers/astro.sh"
+    },
+    {
+      "name": "storybook",
+      "command": ".cc/dev-servers/storybook.sh"
+    }
+  ]
+}
