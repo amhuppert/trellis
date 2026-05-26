@@ -1,13 +1,16 @@
 {
-  "preMergeCommand": "pnpm install --frozen-lockfile && pnpm typecheck && pnpm lint && pnpm test",
+  "initScriptPath": "scripts/worktree-init.sh",
+  "preMergeCommand": "scripts/pre-merge-validate.sh",
   "devServers": [
     {
       "name": "astro",
-      "command": ".cc/dev-servers/astro.sh"
+      "command": ".cc/dev-servers/astro.sh",
+      "port": { "strategy": "cc-assigned", "base": 4321, "range": 100 }
     },
     {
       "name": "storybook",
-      "command": ".cc/dev-servers/storybook.sh"
+      "command": ".cc/dev-servers/storybook.sh",
+      "port": { "strategy": "cc-assigned", "base": 6006, "range": 50 }
     }
   ]
 }
