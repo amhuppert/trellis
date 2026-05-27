@@ -6,3 +6,4 @@
 - [ ] Improve graph UX
 - [ ] Cross-linking between reports, combining reports
 - [ ] Show list of other pages where an entity appears
+- [ ] Improved synthesis skill
