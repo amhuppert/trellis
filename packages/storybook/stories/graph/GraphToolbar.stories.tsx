@@ -18,10 +18,6 @@ function ToolbarPreview() {
           search={search}
           types={types}
           minStrength={minStrength}
-          tableRows={[
-            { id: "snapshot", label: "Snapshot", neighbors: ["Tuple version", "xip list"] },
-            { id: "vacuum", label: "VACUUM", neighbors: ["visibility map"] }
-          ]}
           onSearch={setSearch}
           onTypesChange={setTypes}
           onStrengthChange={setMinStrength}

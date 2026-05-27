@@ -163,7 +163,8 @@ export function GuidedView() {
                   onOpenEntity: openEntity,
                   onOpenSection: openSection,
                   onSeeEntityInGraph: (id) => openGraph(id, "spotlight"),
-                  sectionTitles
+                  sectionTitles,
+                  entities: report.kg?.entities
                 }}
               />
             </BlockFrame>

@@ -20,6 +20,7 @@ export type MiniGraphProps = {
   expand?: number;
   width: number;
   height: number;
+  interactive?: boolean;
   onActivate?: (entityId: string) => void;
 };
 
@@ -37,7 +38,7 @@ function subgraph(nodes: EntityFlowNode[], edges: RelationshipFlowEdge[], entity
   };
 }
 
-function MiniGraphInner({ entityIds, expand = 1, width, height, onActivate }: MiniGraphProps) {
+function MiniGraphInner({ entityIds, expand = 1, width, height, interactive = false, onActivate }: MiniGraphProps) {
   const { report } = useReader();
 
   if (!report.kg || entityIds.length === 0) {
@@ -49,11 +50,11 @@ function MiniGraphInner({ entityIds, expand = 1, width, height, onActivate }: Mi
   const layouted = forceLayout(
     scoped.nodes.map((node) => ({
       ...node,
-      draggable: false,
+      draggable: interactive,
       selectable: false,
       data: {
         ...node.data,
-        compact: true,
+        compact: !interactive,
         onActivate
       }
     })),
@@ -66,7 +67,7 @@ function MiniGraphInner({ entityIds, expand = 1, width, height, onActivate }: Mi
   );
 
   return (
-    <div className="trellis-mini-graph" style={{ width, height }} data-mini-graph>
+    <div className="trellis-mini-graph" style={{ width, height }} data-mini-graph data-interactive={interactive || undefined}>
       <ReactFlow
         nodes={layouted.nodes}
         edges={layouted.edges}
@@ -75,14 +76,16 @@ function MiniGraphInner({ entityIds, expand = 1, width, height, onActivate }: Mi
         onNodeClick={(_event, node) => onActivate?.(node.id)}
         fitView
         fitViewOptions={{ padding: 0.2 }}
-        panOnDrag={false}
-        zoomOnScroll={false}
-        zoomOnPinch={false}
-        zoomOnDoubleClick={false}
-        nodesDraggable={false}
+        panOnDrag={interactive}
+        zoomOnScroll={interactive}
+        zoomOnPinch={interactive}
+        zoomOnDoubleClick={interactive}
+        nodesDraggable={interactive}
         nodesConnectable={false}
         elementsSelectable={false}
-        preventScrolling={false}
+        preventScrolling={!interactive}
+        minZoom={0.3}
+        maxZoom={2.5}
         proOptions={{ hideAttribution: true }}
       />
     </div>

@@ -85,16 +85,13 @@ describe("GraphToolbar", () => {
     expect(onResetLayout).toHaveBeenCalledTimes(1);
   });
 
-  it("opens an accessible adjacency-list dialog", async () => {
-    const user = userEvent.setup();
-
+  it("does not render a view-as-table affordance", () => {
     render(
       <GraphToolbar
         availableTypes={entityTypes}
         search=""
         types={new Set()}
         minStrength="medium"
-        tableRows={[{ id: "snapshot", label: "Snapshot", neighbors: ["Tuple version"] }]}
         onSearch={() => undefined}
         onTypesChange={() => undefined}
         onStrengthChange={() => undefined}
@@ -102,10 +99,7 @@ describe("GraphToolbar", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: /view as table/i }));
-
-    expect(screen.getByRole("dialog", { name: /graph table/i })).toBeInTheDocument();
-    expect(screen.getByText("Snapshot")).toBeInTheDocument();
-    expect(screen.getByText("Tuple version")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /view as table/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: /graph table/i })).not.toBeInTheDocument();
   });
 });

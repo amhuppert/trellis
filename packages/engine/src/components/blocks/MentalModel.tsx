@@ -1,16 +1,25 @@
 import React from "react";
-import type { Block } from "../../schemas";
+import type { Block, Entity } from "../../schemas";
 import { InlineProse } from "../inline";
 import { Eyebrow } from "../primitives";
 
 export type MentalModelProps = Extract<Block, { kind: "mentalModel" }> & {
   onOpenEntity?: (id: string) => void;
   onSeeEntityInGraph?: (id: string) => void;
+  entities?: Entity[];
 };
 
 const noop = () => undefined;
 
-export function MentalModel({ anchorId, title, body, aside, onOpenEntity = noop, onSeeEntityInGraph }: MentalModelProps) {
+export function MentalModel({
+  anchorId,
+  title,
+  body,
+  aside,
+  onOpenEntity = noop,
+  onSeeEntityInGraph,
+  entities
+}: MentalModelProps) {
   return (
     <section
       id={anchorId}
@@ -35,13 +44,15 @@ export function MentalModel({ anchorId, title, body, aside, onOpenEntity = noop,
         </div>
         <Eyebrow color="sage">MENTAL MODEL</Eyebrow>
       </div>
-      <h2 className="mt-2.5 text-h3 text-ink">{title}</h2>
+      <h2 className="mt-2.5 text-h3 text-ink">
+        <InlineProse text={title} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />
+      </h2>
       <div className="mt-3 text-body text-ink">
-        <InlineProse text={body} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />
+        <InlineProse text={body} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />
       </div>
       {aside ? (
         <aside className="mt-4 rounded-lg bg-butter-bg px-4 py-3 font-serif text-body italic text-ink-2">
-          <InlineProse text={aside} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />
+          <InlineProse text={aside} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />
         </aside>
       ) : null}
     </section>

@@ -1,0 +1,258 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - button "Trellis postgres-mvcc" [ref=e5] [cursor=pointer]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: Trellis
+        - generic [ref=e10]: postgres-mvcc
+    - radiogroup "Reader mode" [ref=e11]:
+      - radio "Orientation" [ref=e12]
+      - radio "Guided" [ref=e13]
+      - radio "Reference" [ref=e14]
+      - radio "Synthesis" [ref=e15]
+      - radio "Graph" [checked] [active] [ref=e16]
+    - button "Search Cmd K" [disabled] [ref=e17]:
+      - text: Search
+      - generic [ref=e18]: Cmd K
+  - generic [ref=e19]:
+    - complementary [ref=e20]:
+      - generic [ref=e21]:
+        - tablist "Reader navigation" [ref=e22]:
+          - tab "Sections" [selected] [ref=e23]
+          - tab "Synthesis" [ref=e24]
+        - tabpanel "Sections" [ref=e25]:
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e28]: How Postgres MVCC Works
+              - generic [ref=e29]: 7 sections · approx. 45 min
+            - navigation "Sections" [ref=e30]:
+              - generic [ref=e31]:
+                - generic [ref=e32]:
+                  - button "Collapse Foundations" [expanded] [ref=e294] [cursor=pointer]: v
+                  - button "01 Foundations" [ref=e34] [cursor=pointer]:
+                    - generic [ref=e35]: "01"
+                    - generic [ref=e36]: Foundations
+                - generic [ref=e295]:
+                  - button "What's the problem MVCC is solving?" [ref=e297] [cursor=pointer]:
+                    - generic [ref=e299]: What's the problem MVCC is solving?
+                  - button "The mental model in one sentence" [ref=e301] [cursor=pointer]:
+                    - generic [ref=e303]: The mental model in one sentence
+                  - button "Why not just lock?" [ref=e305] [cursor=pointer]:
+                    - generic [ref=e307]: Why not just lock?
+                  - button "Two ideas, then one design" [ref=e309] [cursor=pointer]:
+                    - generic [ref=e311]: Two ideas, then one design
+                  - button "What happens on a single UPDATE" [ref=e313] [cursor=pointer]:
+                    - generic [ref=e315]: What happens on a single UPDATE
+                  - button "Key takeaways" [ref=e317] [cursor=pointer]:
+                    - generic [ref=e319]: Key takeaways
+                  - button "Common misconception" [ref=e321] [cursor=pointer]:
+                    - generic [ref=e323]: Common misconception
+              - generic [ref=e38]:
+                - button "Expand Tuple versions" [ref=e39] [cursor=pointer]: ">"
+                - button "02 Tuple versions" [ref=e40] [cursor=pointer]:
+                  - generic [ref=e41]: "02"
+                  - generic [ref=e42]: Tuple versions
+              - generic [ref=e44]:
+                - button "Expand Snapshots" [ref=e45] [cursor=pointer]: ">"
+                - button "03 Snapshots" [ref=e46] [cursor=pointer]:
+                  - generic [ref=e47]: "03"
+                  - generic [ref=e48]: Snapshots
+              - generic [ref=e50]:
+                - button "Expand Visibility rules" [ref=e51] [cursor=pointer]: ">"
+                - button "04 Visibility rules" [ref=e52] [cursor=pointer]:
+                  - generic [ref=e53]: "04"
+                  - generic [ref=e54]: Visibility rules
+              - generic [ref=e56]:
+                - button "Expand VACUUM & bloat" [ref=e57] [cursor=pointer]: ">"
+                - button "05 VACUUM & bloat" [ref=e58] [cursor=pointer]:
+                  - generic [ref=e59]: "05"
+                  - generic [ref=e60]: VACUUM & bloat
+              - generic [ref=e62]:
+                - button "Expand Isolation levels" [ref=e63] [cursor=pointer]: ">"
+                - button "06 Isolation levels" [ref=e64] [cursor=pointer]:
+                  - generic [ref=e65]: "06"
+                  - generic [ref=e66]: Isolation levels
+              - generic [ref=e68]:
+                - button "Expand Edge cases" [ref=e69] [cursor=pointer]: ">"
+                - button "07 Edge cases" [ref=e70] [cursor=pointer]:
+                  - generic [ref=e71]: "07"
+                  - generic [ref=e72]: Edge cases
+      - generic "Jump To" [ref=e73]:
+        - generic [ref=e74]: Jump To
+        - button "Orientation" [ref=e75] [cursor=pointer]
+        - button "Reference" [ref=e76] [cursor=pointer]
+        - button "Synthesis" [ref=e77] [cursor=pointer]
+        - button "Graph" [ref=e78] [cursor=pointer]
+    - main [ref=e578]:
+      - toolbar "Graph tools" [ref=e579]:
+        - generic [ref=e580]:
+          - generic [ref=e581]: Search graph
+          - searchbox "Search graph" [ref=e582]
+        - generic "Entity type filters" [ref=e583]:
+          - button "All" [ref=e584]
+          - button "concept" [ref=e585]:
+            - generic [ref=e586]: concept
+          - button "feature" [ref=e587]:
+            - generic [ref=e588]: feature
+          - button "file" [ref=e589]:
+            - generic [ref=e590]: file
+          - button "pattern" [ref=e591]:
+            - generic [ref=e592]: pattern
+        - generic [ref=e593]:
+          - generic [ref=e594]: Minimum relationship strength
+          - slider "Minimum relationship strength" [ref=e595]: "1"
+          - generic [ref=e596]: medium
+        - button "Reset layout" [ref=e597]
+        - generic "Graph mode" [ref=e598]:
+          - button "Atlas" [pressed] [ref=e599]
+          - button "Spotlight" [ref=e600]
+          - button "Regions" [ref=e601]
+      - application [ref=e603]:
+        - generic [ref=e605]:
+          - generic:
+            - generic:
+              - img
+              - img:
+                - group "Edge from mvcc to snapshot" [ref=e606] [cursor=pointer]
+              - img:
+                - group "Edge from mvcc to vacuum" [ref=e609] [cursor=pointer]
+              - img:
+                - group "Edge from xmin to snapshot" [ref=e612] [cursor=pointer]
+              - img:
+                - group "Edge from xmax to snapshot" [ref=e615] [cursor=pointer]
+              - img:
+                - group "Edge from snapshot to xip-list" [ref=e618] [cursor=pointer]
+              - img:
+                - group "Edge from snapshot to command-id" [ref=e621] [cursor=pointer]
+              - img:
+                - group "Edge from vacuum to visibility-map" [ref=e624] [cursor=pointer]
+              - img:
+                - group "Edge from vacuum to freezing" [ref=e627] [cursor=pointer]
+              - img:
+                - group "Edge from freezing to wraparound" [ref=e630] [cursor=pointer]
+              - img:
+                - group "Edge from ssi to predicate-lock" [ref=e633] [cursor=pointer]
+              - img:
+                - group "Edge from ssi to ssi-anomaly" [ref=e636] [cursor=pointer]
+              - img:
+                - group "Edge from hot-update to ctid" [ref=e639] [cursor=pointer]
+            - generic:
+              - generic: depends-on
+              - generic: depends-on
+              - generic: compared-by
+              - generic: compared-by
+              - generic: contains
+              - generic: contains
+              - generic: uses
+              - generic: performs
+              - generic: prevents
+              - generic: uses
+              - generic: detects
+              - generic: preserves
+            - generic:
+              - group "MVCC (concept)" [ref=e642]:
+                - button "MVCC (concept)" [ref=e643]:
+                  - generic [ref=e650]: MVCC
+                  - generic [ref=e651]:
+                    - generic [ref=e652]: concept
+                    - generic [ref=e653]: "2"
+              - group "xmin (concept)" [ref=e654]:
+                - button "xmin (concept)" [ref=e655]:
+                  - generic [ref=e662]: xmin
+                  - generic [ref=e663]:
+                    - generic [ref=e664]: concept
+                    - generic [ref=e665]: "1"
+              - group "xmax (concept)" [ref=e666]:
+                - button "xmax (concept)" [ref=e667]:
+                  - generic [ref=e674]: xmax
+                  - generic [ref=e675]:
+                    - generic [ref=e676]: concept
+                    - generic [ref=e677]: "1"
+              - group "ctid (concept)" [ref=e678]:
+                - button "ctid (concept)" [ref=e679]:
+                  - generic [ref=e686]: ctid
+                  - generic [ref=e687]:
+                    - generic [ref=e688]: concept
+                    - generic [ref=e689]: "1"
+              - group "snapshot (concept)" [ref=e690]:
+                - button "snapshot (concept)" [ref=e691]:
+                  - generic [ref=e698]: snapshot
+                  - generic [ref=e699]:
+                    - generic [ref=e700]: concept
+                    - generic [ref=e701]: "5"
+              - group "visibility map (concept)" [ref=e702]:
+                - button "visibility map (concept)" [ref=e703]:
+                  - generic [ref=e710]: visibility map
+                  - generic [ref=e711]:
+                    - generic [ref=e712]: concept
+                    - generic [ref=e713]: "1"
+              - group "HOT update (pattern)" [ref=e714]:
+                - button "HOT update (pattern)" [ref=e715]:
+                  - generic [ref=e722]: HOT update
+                  - generic [ref=e723]:
+                    - generic [ref=e724]: pattern
+                    - generic [ref=e725]: "1"
+              - group "VACUUM (feature)" [ref=e726]:
+                - button "VACUUM (feature)" [ref=e727]:
+                  - generic [ref=e734]: VACUUM
+                  - generic [ref=e735]:
+                    - generic [ref=e736]: feature
+                    - generic [ref=e737]: "3"
+              - group "freezing (concept)" [ref=e738]:
+                - button "freezing (concept)" [ref=e739]:
+                  - generic [ref=e746]: freezing
+                  - generic [ref=e747]:
+                    - generic [ref=e748]: concept
+                    - generic [ref=e749]: "2"
+              - group "wraparound (concept)" [ref=e750]:
+                - button "wraparound (concept)" [ref=e751]:
+                  - generic [ref=e758]: wraparound
+                  - generic [ref=e759]:
+                    - generic [ref=e760]: concept
+                    - generic [ref=e761]: "1"
+              - group "predicate lock (concept)" [ref=e762]:
+                - button "predicate lock (concept)" [ref=e763]:
+                  - generic [ref=e770]: predicate lock
+                  - generic [ref=e771]:
+                    - generic [ref=e772]: concept
+                    - generic [ref=e773]: "1"
+              - group "SSI (concept)" [ref=e774]:
+                - button "SSI (concept)" [ref=e775]:
+                  - generic [ref=e782]: SSI
+                  - generic [ref=e783]:
+                    - generic [ref=e784]: concept
+                    - generic [ref=e785]: "2"
+              - group "heapam.c (file)" [ref=e786]:
+                - button "heapam.c (file)" [ref=e787]:
+                  - generic [ref=e794]: heapam.c
+                  - generic [ref=e795]:
+                    - generic [ref=e796]: file
+                    - generic [ref=e797]: "0"
+              - group "SSI anomaly (concept)" [ref=e798]:
+                - button "SSI anomaly (concept)" [ref=e799]:
+                  - generic [ref=e806]: SSI anomaly
+                  - generic [ref=e807]:
+                    - generic [ref=e808]: concept
+                    - generic [ref=e809]: "1"
+              - group "command id (concept)" [ref=e810]:
+                - button "command id (concept)" [ref=e811]:
+                  - generic [ref=e818]: command id
+                  - generic [ref=e819]:
+                    - generic [ref=e820]: concept
+                    - generic [ref=e821]: "1"
+              - group "xip list (concept)" [ref=e822]:
+                - button "xip list (concept)" [ref=e823]:
+                  - generic [ref=e830]: xip list
+                  - generic [ref=e831]:
+                    - generic [ref=e832]: concept
+                    - generic [ref=e833]: "1"
+        - img
+        - generic "Control Panel" [ref=e834]:
+          - button "Zoom In" [ref=e835] [cursor=pointer]:
+            - img [ref=e836]
+          - button "Zoom Out" [ref=e838] [cursor=pointer]:
+            - img [ref=e839]
+          - button "Fit View" [ref=e841] [cursor=pointer]:
+            - img [ref=e842]
+          - button "Toggle Interactivity" [ref=e844] [cursor=pointer]:
+            - img [ref=e845]
+      - generic [ref=e848]: atlas graph with 16 entities

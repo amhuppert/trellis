@@ -115,10 +115,10 @@ describe("RightRail", () => {
     );
   });
 
-  it("renders neighborhood, related entities, and section sources", () => {
+  it("renders related entities and section sources", () => {
     renderRail();
 
-    expect(screen.getByText("NEIGHBORHOOD GRAPH")).toBeInTheDocument();
+    expect(screen.queryByText("NEIGHBORHOOD GRAPH")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "snapshot concept" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "xip list concept" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "PostgreSQL docs url" })).toBeInTheDocument();

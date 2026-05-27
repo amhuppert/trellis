@@ -6,18 +6,11 @@ import { cn } from "../../utils";
 
 export type RelationshipStrength = "weak" | "medium" | "strong";
 
-export type GraphTableRow = {
-  id: string;
-  label: string;
-  neighbors: string[];
-};
-
 export type GraphToolbarProps = {
   availableTypes: readonly EntityType[];
   search: string;
   types: Set<EntityType>;
   minStrength: RelationshipStrength;
-  tableRows?: GraphTableRow[];
   graphMode?: GraphMode;
   hops?: 1 | 2 | 3;
   showHops?: boolean;
@@ -36,7 +29,6 @@ export function GraphToolbar({
   search,
   types,
   minStrength,
-  tableRows = [],
   graphMode,
   hops = 2,
   showHops = false,
@@ -47,8 +39,6 @@ export function GraphToolbar({
   onGraphModeChange,
   onHopsChange
 }: GraphToolbarProps) {
-  const [tableOpen, setTableOpen] = React.useState(false);
-
   const toggleType = (type: EntityType) => {
     const next = new Set(types);
     if (next.has(type)) next.delete(type);
@@ -152,54 +142,6 @@ export function GraphToolbar({
         </div>
       ) : null}
 
-      <div className={graphMode && onGraphModeChange ? "" : "ml-auto"}>
-        <Button variant="ghost" size="sm" onClick={() => setTableOpen(true)}>
-          View as table
-        </Button>
-      </div>
-
-      {tableOpen ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Graph table"
-          className="fixed inset-0 z-50 grid place-items-center bg-ink/20 p-6"
-          onClick={() => setTableOpen(false)}
-        >
-          <div className="max-h-[70vh] w-full max-w-2xl overflow-auto rounded-md border border-border bg-surface p-4 shadow-pop" onClick={(event) => event.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between gap-4">
-              <h2 className="font-serif text-xl font-medium text-ink">Graph table</h2>
-              <Button variant="secondary" size="sm" onClick={() => setTableOpen(false)}>
-                Close
-              </Button>
-            </div>
-            <table className="w-full border-collapse text-left text-sm">
-              <thead className="font-mono text-[10px] uppercase text-ink-3">
-                <tr>
-                  <th className="border-b border-border-soft py-2 pr-4">Entity</th>
-                  <th className="border-b border-border-soft py-2">Neighbors</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tableRows.length > 0 ? (
-                  tableRows.map((row) => (
-                    <tr key={row.id}>
-                      <td className="border-b border-border-soft py-2 pr-4 font-mono text-coral-ink">{row.label}</td>
-                      <td className="border-b border-border-soft py-2 text-ink-2">{row.neighbors.join(", ") || "None"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td className="py-3 text-ink-3" colSpan={2}>
-                      No visible graph rows.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

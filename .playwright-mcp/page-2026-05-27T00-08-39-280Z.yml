@@ -1,0 +1,305 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - button "Trellis postgres-mvcc" [ref=e5] [cursor=pointer]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: Trellis
+        - generic [ref=e10]: postgres-mvcc
+    - radiogroup "Reader mode" [ref=e11]:
+      - radio "Orientation" [ref=e12]
+      - radio "Guided" [checked] [active] [ref=e13]
+      - radio "Reference" [ref=e14]
+      - radio "Synthesis" [ref=e15]
+      - radio "Graph" [ref=e16]
+    - button "Search Cmd K" [disabled] [ref=e17]:
+      - text: Search
+      - generic [ref=e18]: Cmd K
+  - generic [ref=e19]:
+    - complementary [ref=e20]:
+      - generic [ref=e21]:
+        - tablist "Reader navigation" [ref=e22]:
+          - tab "Sections" [selected] [ref=e23]
+          - tab "Synthesis" [ref=e24]
+        - tabpanel "Sections" [ref=e25]:
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e28]: How Postgres MVCC Works
+              - generic [ref=e29]: 7 sections · approx. 45 min
+            - navigation "Sections" [ref=e30]:
+              - generic [ref=e31]:
+                - generic [ref=e32]:
+                  - button "Collapse Foundations" [expanded] [ref=e294] [cursor=pointer]: v
+                  - button "01 Foundations" [ref=e34] [cursor=pointer]:
+                    - generic [ref=e35]: "01"
+                    - generic [ref=e36]: Foundations
+                - generic [ref=e295]:
+                  - button "What's the problem MVCC is solving?" [ref=e297] [cursor=pointer]:
+                    - generic [ref=e299]: What's the problem MVCC is solving?
+                  - button "The mental model in one sentence" [ref=e301] [cursor=pointer]:
+                    - generic [ref=e303]: The mental model in one sentence
+                  - button "Why not just lock?" [ref=e305] [cursor=pointer]:
+                    - generic [ref=e307]: Why not just lock?
+                  - button "Two ideas, then one design" [ref=e309] [cursor=pointer]:
+                    - generic [ref=e311]: Two ideas, then one design
+                  - button "What happens on a single UPDATE" [ref=e313] [cursor=pointer]:
+                    - generic [ref=e315]: What happens on a single UPDATE
+                  - button "Key takeaways" [ref=e317] [cursor=pointer]:
+                    - generic [ref=e319]: Key takeaways
+                  - button "Common misconception" [ref=e321] [cursor=pointer]:
+                    - generic [ref=e323]: Common misconception
+              - generic [ref=e38]:
+                - button "Expand Tuple versions" [ref=e39] [cursor=pointer]: ">"
+                - button "02 Tuple versions" [ref=e40] [cursor=pointer]:
+                  - generic [ref=e41]: "02"
+                  - generic [ref=e42]: Tuple versions
+              - generic [ref=e44]:
+                - button "Expand Snapshots" [ref=e45] [cursor=pointer]: ">"
+                - button "03 Snapshots" [ref=e46] [cursor=pointer]:
+                  - generic [ref=e47]: "03"
+                  - generic [ref=e48]: Snapshots
+              - generic [ref=e50]:
+                - button "Expand Visibility rules" [ref=e51] [cursor=pointer]: ">"
+                - button "04 Visibility rules" [ref=e52] [cursor=pointer]:
+                  - generic [ref=e53]: "04"
+                  - generic [ref=e54]: Visibility rules
+              - generic [ref=e56]:
+                - button "Expand VACUUM & bloat" [ref=e57] [cursor=pointer]: ">"
+                - button "05 VACUUM & bloat" [ref=e58] [cursor=pointer]:
+                  - generic [ref=e59]: "05"
+                  - generic [ref=e60]: VACUUM & bloat
+              - generic [ref=e62]:
+                - button "Expand Isolation levels" [ref=e63] [cursor=pointer]: ">"
+                - button "06 Isolation levels" [ref=e64] [cursor=pointer]:
+                  - generic [ref=e65]: "06"
+                  - generic [ref=e66]: Isolation levels
+              - generic [ref=e68]:
+                - button "Expand Edge cases" [ref=e69] [cursor=pointer]: ">"
+                - button "07 Edge cases" [ref=e70] [cursor=pointer]:
+                  - generic [ref=e71]: "07"
+                  - generic [ref=e72]: Edge cases
+      - generic "Jump To" [ref=e73]:
+        - generic [ref=e74]: Jump To
+        - button "Orientation" [ref=e75] [cursor=pointer]
+        - button "Reference" [ref=e76] [cursor=pointer]
+        - button "Synthesis" [ref=e77] [cursor=pointer]
+        - button "Graph" [ref=e78] [cursor=pointer]
+    - main [ref=e849]:
+      - generic [ref=e850]:
+        - generic [ref=e851]:
+          - generic [ref=e852]:
+            - generic [ref=e853]: 01 · Foundations
+            - generic [ref=e854]: Concept
+            - generic [ref=e855]: 5m
+          - heading "Foundations" [level=1] [ref=e856]
+          - paragraph [ref=e857]: Before xmin, before snapshots, before VACUUM, we need to agree on what a database is hiding from each transaction, and why.
+          - generic "Foundations neighborhood graph" [ref=e858]:
+            - application [ref=e860]:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - img "Edge from mvcc to snapshot"
+                      - img:
+                        - img "Edge from mvcc to vacuum"
+                      - img:
+                        - img "Edge from xmin to snapshot"
+                      - img:
+                        - img "Edge from xmax to snapshot"
+                      - img:
+                        - img "Edge from snapshot to xip-list"
+                      - img:
+                        - img "Edge from snapshot to command-id"
+                      - img:
+                        - img "Edge from vacuum to visibility-map"
+                      - img:
+                        - img "Edge from vacuum to freezing"
+                    - generic:
+                      - generic: depends-on
+                      - generic: depends-on
+                      - generic: compared-by
+                      - generic: compared-by
+                      - generic: contains
+                      - generic: contains
+                      - generic: uses
+                      - generic: performs
+                    - generic:
+                      - group "MVCC (concept)" [ref=e861]:
+                        - button "MVCC (concept)" [ref=e862]:
+                          - generic [ref=e869]: MVCC
+                          - generic [ref=e870]:
+                            - generic [ref=e871]: concept
+                            - generic [ref=e872]: "2"
+                      - group "xmin (concept)" [ref=e873]:
+                        - button "xmin (concept)" [ref=e874]:
+                          - generic [ref=e881]: xmin
+                          - generic [ref=e882]:
+                            - generic [ref=e883]: concept
+                            - generic [ref=e884]: "1"
+                      - group "xmax (concept)" [ref=e885]:
+                        - button "xmax (concept)" [ref=e886]:
+                          - generic [ref=e893]: xmax
+                          - generic [ref=e894]:
+                            - generic [ref=e895]: concept
+                            - generic [ref=e896]: "1"
+                      - group "snapshot (concept)" [ref=e897]:
+                        - button "snapshot (concept)" [ref=e898]:
+                          - generic [ref=e905]: snapshot
+                          - generic [ref=e906]:
+                            - generic [ref=e907]: concept
+                            - generic [ref=e908]: "5"
+                      - group "visibility map (concept)" [ref=e909]:
+                        - button "visibility map (concept)" [ref=e910]:
+                          - generic [ref=e917]: visibility map
+                          - generic [ref=e918]:
+                            - generic [ref=e919]: concept
+                            - generic [ref=e920]: "1"
+                      - group "VACUUM (feature)" [ref=e921]:
+                        - button "VACUUM (feature)" [ref=e922]:
+                          - generic [ref=e929]: VACUUM
+                          - generic [ref=e930]:
+                            - generic [ref=e931]: feature
+                            - generic [ref=e932]: "3"
+                      - group "freezing (concept)" [ref=e933]:
+                        - button "freezing (concept)" [ref=e934]:
+                          - generic [ref=e941]: freezing
+                          - generic [ref=e942]:
+                            - generic [ref=e943]: concept
+                            - generic [ref=e944]: "2"
+                      - group "command id (concept)" [ref=e945]:
+                        - button "command id (concept)" [ref=e946]:
+                          - generic [ref=e953]: command id
+                          - generic [ref=e954]:
+                            - generic [ref=e955]: concept
+                            - generic [ref=e956]: "1"
+                      - group "xip list (concept)" [ref=e957]:
+                        - button "xip list (concept)" [ref=e958]:
+                          - generic [ref=e965]: xip list
+                          - generic [ref=e966]:
+                            - generic [ref=e967]: concept
+                            - generic [ref=e968]: "1"
+        - generic [ref=e970]:
+          - generic [ref=e972]:
+            - generic [ref=e973]: CONCEPT INTRO
+            - heading "What's the problem MVCC is solving?" [level=2] [ref=e974]
+            - generic [ref=e975]:
+              - text: A database is a single, shared piece of state. The moment two clients are reading and writing at the same time, the system has to decide whose view of the world is real. Locking is one answer.
+              - button "MVCC" [ref=e976]
+              - text: is a different one - one that lets readers and writers stop blocking each other entirely, at the cost of carrying many versions of every row.
+          - generic [ref=e978]:
+            - generic [ref=e979]:
+              - img [ref=e981]
+              - generic [ref=e983]: MENTAL MODEL
+            - heading "The mental model in one sentence" [level=2] [ref=e984]
+            - generic [ref=e985]: Each transaction reads from its own snapshot of the database - a frozen moment that ignores anything that hasn't committed yet, and ignores anything that committed after the snapshot was taken.
+            - complementary [ref=e986]: "If you remember nothing else from this report, remember this: a Postgres reader never sees a half-written world. The snapshot decides which writes count as visible, even if other transactions are committing wildly around it."
+          - complementary [ref=e988]:
+            - generic [ref=e989]: i
+            - generic [ref=e990]:
+              - generic [ref=e991]: Why not just lock?
+              - generic [ref=e992]: In a lock-based system, a read takes a shared lock and a write takes an exclusive lock. They wait on each other. Postgres does still take locks, but for visibility, MVCC means readers don't block writers and writers don't block readers.
+          - heading "Two ideas, then one design" [level=2] [ref=e994]
+          - generic [ref=e995]:
+            - text: Two ideas have to land before any of the later sections make sense. The first is that
+            - emphasis [ref=e996]: every write makes a new row
+            - text: . An UPDATE doesn't change a row in place; it writes a new tuple and marks the old one as superseded. A DELETE doesn't free the row immediately; it marks it as deleted by a particular transaction. The second is that
+            - emphasis [ref=e997]: every read carries a snapshot
+            - text: ": a small set of transaction ids that the reader considers committed."
+          - generic [ref=e999]:
+            - generic [ref=e1000]: STEP BY STEP
+            - heading "What happens on a single UPDATE" [level=2] [ref=e1001]
+            - list [ref=e1002]:
+              - listitem [ref=e1003]:
+                - generic [ref=e1004]: "1"
+                - generic [ref=e1005]:
+                  - generic [ref=e1006]: Old tuple stays put
+                  - generic [ref=e1007]:
+                    - text: Postgres does not overwrite the existing row. Its
+                    - button "xmax" [ref=e1008]
+                    - text: is stamped with the current transaction's id; physically, it still occupies the same disk page.
+              - listitem [ref=e1009]:
+                - generic [ref=e1010]: "2"
+                - generic [ref=e1011]:
+                  - generic [ref=e1012]: New tuple is written
+                  - generic [ref=e1013]:
+                    - text: A fresh tuple is appended. Its
+                    - button "xmin" [ref=e1014]
+                    - text: is the current transaction id. Its xmax is zero - it is alive, from its own creator's point of view.
+              - listitem [ref=e1015]:
+                - generic [ref=e1016]: "3"
+                - generic [ref=e1017]:
+                  - generic [ref=e1018]: Older readers see the old version
+                  - generic [ref=e1019]:
+                    - text: Any backend whose
+                    - button "snapshot" [ref=e1020]
+                    - text: was taken before this transaction committed continues to read the old tuple. It is still there. It is still valid for them.
+              - listitem [ref=e1021]:
+                - generic [ref=e1022]: "4"
+                - generic [ref=e1023]:
+                  - generic [ref=e1024]: VACUUM cleans up later
+                  - generic [ref=e1025]:
+                    - text: Once no live snapshot can possibly need the old tuple,
+                    - button "VACUUM" [ref=e1026]
+                    - text: reclaims its space. Not before.
+          - generic [ref=e1028]:
+            - generic [ref=e1029]: KEY TAKEAWAYS
+            - list [ref=e1030]:
+              - listitem [ref=e1031]:
+                - generic [ref=e1033]: MVCC trades space and a janitor for the ability to read without locking writers.
+              - listitem [ref=e1034]:
+                - generic [ref=e1036]: Every UPDATE is logically a new INSERT plus a tombstone on the old row.
+              - listitem [ref=e1037]:
+                - generic [ref=e1039]: Visibility is a function of the reader's snapshot, not of the row itself.
+              - listitem [ref=e1040]:
+                - generic [ref=e1042]: VACUUM is not optional. Postgres' design assumes it runs.
+          - generic [ref=e1044]:
+            - generic [ref=e1045]: COMMON MISCONCEPTION
+            - generic [ref=e1046]:
+              - generic [ref=e1047]: CLAIM
+              - generic [ref=e1048]: A SELECT sees the latest committed value of a row.
+            - generic [ref=e1049]:
+              - generic [ref=e1050]: TRUTH
+              - generic [ref=e1051]:
+                - text: It sees the latest value committed
+                - emphasis [ref=e1052]: before this transaction's snapshot was taken
+                - text: . In repeatable-read, that's at the first query. In read-committed, it's at each statement.
+          - generic [ref=e1053]:
+            - generic [ref=e1054]: BEFORE YOU CONTINUE
+            - generic [ref=e1055]: "The next section gets specific about what's actually stamped on each row: xmin, xmax, ctid, and the infomask."
+            - button "Continue to Tuple versions" [ref=e1056]:
+              - text: Continue to Tuple versions
+              - generic [ref=e1057]: "->"
+        - navigation "Section pagination" [ref=e1058]:
+          - button "← Previous" [disabled]
+          - button "Next · 02 · Tuple versions →" [ref=e1059]
+    - complementary "Section context" [ref=e1060]:
+      - generic [ref=e1061]:
+        - generic [ref=e1062]: RELATED ENTITIES
+        - generic [ref=e1063]:
+          - button "MVCC concept" [ref=e1064]:
+            - generic [ref=e1065]: MVCC
+            - generic [ref=e1066]: concept
+          - button "snapshot concept" [ref=e1067]:
+            - generic [ref=e1068]: snapshot
+            - generic [ref=e1069]: concept
+          - button "xmin concept" [ref=e1070]:
+            - generic [ref=e1071]: xmin
+            - generic [ref=e1072]: concept
+          - button "xmax concept" [ref=e1073]:
+            - generic [ref=e1074]: xmax
+            - generic [ref=e1075]: concept
+          - button "VACUUM feature" [ref=e1076]:
+            - generic [ref=e1077]: VACUUM
+            - generic [ref=e1078]: feature
+      - generic [ref=e1079]:
+        - generic [ref=e1080]: SOURCES
+        - generic [ref=e1081]:
+          - button "PostgreSQL Documentation - Concurrency Control url" [ref=e1082]:
+            - generic [ref=e1083]: PostgreSQL Documentation - Concurrency Control
+            - generic [ref=e1084]: url
+          - button "heapam.c code" [ref=e1085]:
+            - generic [ref=e1086]: heapam.c
+            - generic [ref=e1087]: code
+          - button "MVCC Unmasked visibility passage passage" [ref=e1088]:
+            - generic [ref=e1089]: MVCC Unmasked visibility passage
+            - generic [ref=e1090]: passage
+      - button "See full graph" [ref=e1091]

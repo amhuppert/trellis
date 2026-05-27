@@ -1,16 +1,23 @@
 import React from "react";
-import type { Block } from "../../schemas";
+import type { Block, Entity } from "../../schemas";
 import { InlineProse } from "../inline";
 import { Eyebrow } from "../primitives";
 
 export type KeyTakeawaysProps = Extract<Block, { kind: "keyTakeaways" }> & {
   onOpenEntity?: (id: string) => void;
   onSeeEntityInGraph?: (id: string) => void;
+  entities?: Entity[];
 };
 
 const noop = () => undefined;
 
-export function KeyTakeaways({ anchorId, items, onOpenEntity = noop, onSeeEntityInGraph }: KeyTakeawaysProps) {
+export function KeyTakeaways({
+  anchorId,
+  items,
+  onOpenEntity = noop,
+  onSeeEntityInGraph,
+  entities
+}: KeyTakeawaysProps) {
   return (
     <section
       id={anchorId}
@@ -23,7 +30,7 @@ export function KeyTakeaways({ anchorId, items, onOpenEntity = noop, onSeeEntity
           <li key={`${item}-${index}`} className="grid grid-cols-[20px_1fr] items-start gap-2.5">
             <span className="mt-2 size-1.5 rounded-pill bg-coral" aria-hidden="true" />
             <span className="font-serif text-label leading-relaxed text-ink">
-              <InlineProse text={item} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />
+              <InlineProse text={item} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />
             </span>
           </li>
         ))}

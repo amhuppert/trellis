@@ -1,11 +1,12 @@
 import React from "react";
-import type { Block } from "../../schemas";
+import type { Block, Entity } from "../../schemas";
 import { cn } from "../../utils";
 import { InlineProse } from "../inline";
 
 export type CalloutProps = Extract<Block, { kind: "callout" }> & {
   onOpenEntity?: (id: string) => void;
   onSeeEntityInGraph?: (id: string) => void;
+  entities?: Entity[];
 };
 
 const noop = () => undefined;
@@ -41,7 +42,15 @@ const toneStyles = {
   }
 } as const;
 
-export function Callout({ anchorId, tone = "info", title, body, onOpenEntity = noop, onSeeEntityInGraph }: CalloutProps) {
+export function Callout({
+  anchorId,
+  tone = "info",
+  title,
+  body,
+  onOpenEntity = noop,
+  onSeeEntityInGraph,
+  entities
+}: CalloutProps) {
   const styles = toneStyles[tone];
 
   return (
@@ -64,9 +73,11 @@ export function Callout({ anchorId, tone = "info", title, body, onOpenEntity = n
         {styles.mark}
       </div>
       <div>
-        <div className={cn("text-label font-bold", styles.title)}>{title}</div>
+        <div className={cn("text-label font-bold", styles.title)}>
+          <InlineProse text={title} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />
+        </div>
         <div className={cn("mt-1 font-serif text-label leading-relaxed", styles.body)}>
-          <InlineProse text={body} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />
+          <InlineProse text={body} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />
         </div>
       </div>
     </aside>

@@ -1,7 +1,6 @@
 import React from "react";
 import type { SourceReference } from "../../schemas";
 import { Button, Eyebrow } from "../primitives";
-import { MiniGraph } from "../graph/MiniGraph";
 import { useReader } from "../shell/AppShell";
 
 function sourceHref(source: SourceReference) {
@@ -33,18 +32,6 @@ export function RightRail() {
   return (
     <aside className="trellis-right-rail" aria-label="Section context">
       <section>
-        <Eyebrow style={{ pointerEvents: "none" }}>NEIGHBORHOOD GRAPH</Eyebrow>
-        <div className="mt-3">
-          <MiniGraph
-            entityIds={currentSection.relatedEntityIds}
-            width={220}
-            height={96}
-            onActivate={(entityId) => openEntity(entityId)}
-          />
-        </div>
-      </section>
-
-      <section className="mt-6">
         <Eyebrow>RELATED ENTITIES</Eyebrow>
         <div className="mt-3 grid gap-2">
           {relatedEntities.map((entity) => (

@@ -12,7 +12,7 @@ export { GraphView } from "./GraphView";
 export { MiniGraph } from "./MiniGraph";
 export { SectionHeaderGraph } from "./SectionHeaderGraph";
 export type { GraphCanvasProps } from "./GraphCanvas";
-export type { GraphToolbarProps, GraphTableRow } from "./GraphToolbar";
+export type { GraphToolbarProps } from "./GraphToolbar";
 export type { MiniGraphProps } from "./MiniGraph";
 export type { SectionHeaderGraphProps } from "./SectionHeaderGraph";
 

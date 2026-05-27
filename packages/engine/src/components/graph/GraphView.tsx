@@ -1,21 +1,12 @@
 import React from "react";
 import type { EntityType } from "../../schemas";
-import { neighbors, type EntityFlowNode, type RelationshipFlowEdge } from "../../kg";
+import type { EntityFlowNode, RelationshipFlowEdge } from "../../kg";
 import { useReader } from "../shell/AppShell";
 import { GraphCanvas } from "./GraphCanvas";
-import { GraphToolbar, type GraphTableRow } from "./GraphToolbar";
+import { GraphToolbar } from "./GraphToolbar";
 
 function visibleTypes(nodes: EntityFlowNode[]): EntityType[] {
   return Array.from(new Set(nodes.map((node) => node.data.entity.type))).sort();
-}
-
-function tableRows(nodes: EntityFlowNode[], edges: RelationshipFlowEdge[]): GraphTableRow[] {
-  const nameById = new Map(nodes.map((node) => [node.id, node.data.entity.name]));
-  return nodes.map((node) => ({
-    id: node.id,
-    label: node.data.entity.name,
-    neighbors: neighbors(node.id, edges, { hops: 1 }).map((id) => nameById.get(id) ?? id)
-  }));
 }
 
 export function GraphView() {
@@ -101,7 +92,6 @@ export function GraphView() {
         minStrength={minStrength}
         showHops={state.graphMode === "spotlight"}
         hops={hops}
-        tableRows={tableRows(visibleGraph.nodes, visibleGraph.edges)}
         onSearch={setSearch}
         onTypesChange={setTypes}
         onStrengthChange={setMinStrength}

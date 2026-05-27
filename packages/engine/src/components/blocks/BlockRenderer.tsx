@@ -1,5 +1,5 @@
 import React from "react";
-import type { Block } from "../../schemas";
+import type { Block, Entity } from "../../schemas";
 import { InlineProse } from "../inline";
 import { Eyebrow } from "../primitives";
 import { BeforeYouContinue } from "./BeforeYouContinue";
@@ -17,6 +17,7 @@ export type BlockRendererCallbacks = {
   onSeeEntityInGraph?: (id: string) => void;
   onOpenSection?: (id: string) => void;
   sectionTitles?: Record<string, string>;
+  entities?: Entity[];
 };
 
 export type BlockRendererProps = {
@@ -47,11 +48,13 @@ function CodeBlock({ block }: { block: Extract<Block, { kind: "codeBlock" }> }) 
 function FigureBlock({
   block,
   onOpenEntity,
-  onSeeEntityInGraph
+  onSeeEntityInGraph,
+  entities
 }: {
   block: Extract<Block, { kind: "figure" }>;
   onOpenEntity: (id: string) => void;
   onSeeEntityInGraph?: (id: string) => void;
+  entities?: Entity[];
 }) {
   return (
     <figure
@@ -69,7 +72,12 @@ function FigureBlock({
       </div>
       {block.caption ? (
         <figcaption className="mt-3 text-caption text-ink-2">
-          <InlineProse text={block.caption} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />
+          <InlineProse
+            text={block.caption}
+            onOpenEntity={onOpenEntity}
+            onSeeEntityInGraph={onSeeEntityInGraph}
+            entities={entities}
+          />
         </figcaption>
       ) : null}
     </figure>
@@ -79,11 +87,13 @@ function FigureBlock({
 function ComparisonTable({
   block,
   onOpenEntity,
-  onSeeEntityInGraph
+  onSeeEntityInGraph,
+  entities
 }: {
   block: Extract<Block, { kind: "comparisonTable" }>;
   onOpenEntity: (id: string) => void;
   onSeeEntityInGraph?: (id: string) => void;
+  entities?: Entity[];
 }) {
   return (
     <section
@@ -112,7 +122,12 @@ function ComparisonTable({
               <tr key={rowIndex} className="border-b border-border-soft last:border-b-0">
                 {row.map((cell, cellIndex) => (
                   <td key={`${rowIndex}-${cellIndex}`} className="px-4 py-3 align-top text-ink-2">
-                    <InlineProse text={cell} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />
+                    <InlineProse
+                      text={cell}
+                      onOpenEntity={onOpenEntity}
+                      onSeeEntityInGraph={onSeeEntityInGraph}
+                      entities={entities}
+                    />
                   </td>
                 ))}
               </tr>
@@ -140,20 +155,21 @@ function CustomBlock({ block }: { block: Extract<Block, { kind: "custom" }> }) {
 export function BlockRenderer({ block, callbacks = {} }: BlockRendererProps) {
   const onOpenEntity = callbacks.onOpenEntity ?? noop;
   const onSeeEntityInGraph = callbacks.onSeeEntityInGraph;
+  const entities = callbacks.entities;
 
   switch (block.kind) {
     case "conceptIntro":
-      return <ConceptIntro {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />;
+      return <ConceptIntro {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />;
     case "mentalModel":
-      return <MentalModel {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />;
+      return <MentalModel {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />;
     case "callout":
-      return <Callout {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />;
+      return <Callout {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />;
     case "stepByStep":
-      return <StepByStep {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />;
+      return <StepByStep {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />;
     case "keyTakeaways":
-      return <KeyTakeaways {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />;
+      return <KeyTakeaways {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />;
     case "misconception":
-      return <CommonMisconception {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />;
+      return <CommonMisconception {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />;
     case "beforeContinue":
       return (
         <BeforeYouContinue
@@ -162,18 +178,19 @@ export function BlockRenderer({ block, callbacks = {} }: BlockRendererProps) {
           onOpenEntity={onOpenEntity}
           onSeeEntityInGraph={onSeeEntityInGraph}
           onOpenSection={callbacks.onOpenSection}
+          entities={entities}
         />
       );
     case "heading":
       return <BlockHeading {...block} />;
     case "prose":
-      return <ProseBlock {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />;
+      return <ProseBlock {...block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />;
     case "codeBlock":
       return <CodeBlock block={block} />;
     case "figure":
-      return <FigureBlock block={block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />;
+      return <FigureBlock block={block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />;
     case "comparisonTable":
-      return <ComparisonTable block={block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />;
+      return <ComparisonTable block={block} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />;
     case "custom":
       return <CustomBlock block={block} />;
     default:

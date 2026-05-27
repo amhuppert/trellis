@@ -1,5 +1,5 @@
 import React from "react";
-import type { Block } from "../../schemas";
+import type { Block, Entity } from "../../schemas";
 import { InlineProse } from "../inline";
 import { Button, Eyebrow } from "../primitives";
 
@@ -8,6 +8,7 @@ export type BeforeYouContinueProps = Extract<Block, { kind: "beforeContinue" }> 
   onOpenEntity?: (id: string) => void;
   onSeeEntityInGraph?: (id: string) => void;
   onOpenSection?: (id: string) => void;
+  entities?: Entity[];
 };
 
 const noop = () => undefined;
@@ -19,7 +20,8 @@ export function BeforeYouContinue({
   nextSectionTitle,
   onOpenEntity = noop,
   onSeeEntityInGraph,
-  onOpenSection = noop
+  onOpenSection = noop,
+  entities
 }: BeforeYouContinueProps) {
   const label = nextSectionTitle ?? nextSectionId;
 
@@ -31,7 +33,7 @@ export function BeforeYouContinue({
     >
       <Eyebrow color="butter">BEFORE YOU CONTINUE</Eyebrow>
       <div className="mt-2.5 font-serif text-label leading-relaxed text-ink">
-        <InlineProse text={body} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} />
+        <InlineProse text={body} onOpenEntity={onOpenEntity} onSeeEntityInGraph={onSeeEntityInGraph} entities={entities} />
       </div>
       <Button className="mt-3.5" onClick={() => onOpenSection(nextSectionId)} variant="primary">
         Continue to {label}
