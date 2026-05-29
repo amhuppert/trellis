@@ -21,8 +21,6 @@ function getReporters(): ("default" | "dot" | "github-actions")[] {
 
 export default defineConfig({
   test: {
-    environment: "node",
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     reporters: getReporters(),
     pool: "forks",
     poolOptions: {
