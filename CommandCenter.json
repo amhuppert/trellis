@@ -4,13 +4,13 @@
   "devServers": [
     {
       "name": "astro",
-      "command": ".cc/dev-servers/astro.sh",
-      "port": { "strategy": "cc-assigned", "base": 4321, "range": 100 }
+      "command": "pnpm dev postgres-mvcc -- --host 0.0.0.0 --port $CC_ASSIGNED_PORT",
+      "port": { "base": 4321, "range": 100 }
     },
     {
       "name": "storybook",
-      "command": ".cc/dev-servers/storybook.sh",
-      "port": { "strategy": "cc-assigned", "base": 6006, "range": 50 }
+      "command": "STORYBOOK_DISABLE_TELEMETRY=1 pnpm --filter @trellis/storybook exec storybook dev --host 0.0.0.0 --port $CC_ASSIGNED_PORT --no-open",
+      "port": { "base": 6006, "range": 50 }
     }
   ]
 }
